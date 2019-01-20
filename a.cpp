@@ -9,7 +9,8 @@
 using namespace std;
 
 namespace {
-	const GLint WIDTH  = 1280;  // 画面サイズ。フルスクリーンの場合は、解像度となる
+	const bool IS_FULL_SCREEN = false; // フルスクリーンかどうか 
+	const GLint WIDTH  = 1280;        // 画面サイズ。フルスクリーンの場合は、解像度となる
 	const GLint HEIGHT = 720;
 	const GLint TEX_SIZE = 256;
 	const GLint OBJ_MAX = 400;
@@ -373,7 +374,9 @@ main()
 	// ウィンドウを生成し、識別子を取得
 	// glfwCreateWindowの第4引数にglfwGetPrimaryMonitorを渡すと、フルスクリーンになる。
 	// その際、widthとheightが解像度となる。ここではアスペクト比16:9の、1280x720（720p）を指定した。
-	GLFWwindow *window = glfwCreateWindow(WIDTH, HEIGHT, "myApp", glfwGetPrimaryMonitor(), NULL);
+	GLFWmonitor *monitor = NULL;
+	if (IS_FULL_SCREEN) monitor = glfwGetPrimaryMonitor();
+	GLFWwindow *window = glfwCreateWindow(WIDTH, HEIGHT, "myApp", monitor , NULL);
 	// GLFWwindow *window = glfwCreateWindow(WIDTH, HEIGHT, "myApp", NULL, NULL);
 	if (!window) {
 		glfwTerminate();
