@@ -10,14 +10,14 @@ using namespace std;
 
 namespace {
 	const bool IS_FULL_SCREEN = false; // フルスクリーンかどうか 
-	const GLint WIDTH  = 1280;        // 画面サイズ。フルスクリーンの場合は、解像度となる
+	const GLint WIDTH  = 1280;         // 画面サイズ。フルスクリーンの場合は、解像度となる
 	const GLint HEIGHT = 720;
 	const GLint TEX_SIZE = 256;
 	const GLint OBJ_MAX = 400;
-	const int64_t WAIT_TIME = 33;  // 1ループの最低更新時間（値はfps=60の時の2フレームのms）
+	const int64_t WAIT_TIME = 33;      // 1ループの最低更新時間（値はfps=60の時の2フレームのms）
 	const char *CONFIG_FILE = "Config.bin";
 	const double PI_MUL2   = M_PI * 2.0;
-	const double PI_DIV180 = M_PI / 180;
+	const double PI_DIV180 = M_PI / 180.0;
 
 	struct TYPE_POS {
 		GLfloat x;
@@ -67,6 +67,31 @@ namespace {
 		int               blendEquationMax;
 		GLenum            blendEquation[10];
 	};
+
+	class CLASS_EFX_FLASH {
+		// 【クラス】画面の発光エフェクト
+		private:
+			// フィールド
+			GLclampf intensity   = 0.0f;  // C++11以降対応の初期化
+			const GLclampf decay = 0.9f;
+		
+		public:
+			GLclampf getIntensity() {
+				// 【ゲッタ】現在の発光強度を返す
+				return this->intensity;
+			}
+
+			void bang() {
+				// 【メソッド】エフェクトをトリガー
+				this->intensity = 1.0f;
+			}
+
+			void proceed() {
+				// 【メソッド】エフェクトを推移する
+				this->intensity *= this->decay;
+				if (this->intensity < 0.01f) this->intensity = 0.0f;
+			}
+	};
 }
 
 
@@ -111,30 +136,9 @@ SaveConfig(const char *fileName, TYPE_ATMOS &atmos)
 
 
 
-GLclampf
-ProcessEfxFlash(bool bang = false)
-{
-	// 【関数】画面の発光エフェクト
-	// ＜引数＞   trueを渡すと発光のトリガーになる（発光のトリガー時以外はfalse）
-	// ＜戻り値＞ 現在の発光強度（intensity）
-	// トリガー以降、関数が呼ばれる度にintensityを減衰させる（この関数はintensityしか処理しない）
-	static GLclampf intensity = 0.0f;
-	static const GLclampf decay = 0.9f;
-
-	intensity *= decay;
-	if (intensity < 0.01f) intensity = 0.0f;
-	if (bang) intensity = 1.0f;
-
-
-	return intensity;
-}
-
-
-
-
 
 bool
-CheckControllerEvent(GLFWwindow *window, TYPE_ATMOS &atmos)
+CheckControllerEvent(GLFWwindow *window, TYPE_ATMOS &atmos, CLASS_EFX_FLASH &EfxFlash)
 {
 	// 【関数】入力操作の判定
 	// ＜戻り値＞アプリ終了の操作ならtrue、それ以外false
@@ -237,7 +241,7 @@ CheckControllerEvent(GLFWwindow *window, TYPE_ATMOS &atmos)
 	if (glfwGetKey(window, GLFW_KEY_ENTER) == GLFW_PRESS) {
 		if (!flgKey[GLFW_KEY_ENTER]) {
 			SaveConfig(CONFIG_FILE, atmos);
-			ProcessEfxFlash(true);
+			EfxFlash.bang();
 			flgKey[GLFW_KEY_ENTER] = true;
 		}
 	}
@@ -314,8 +318,8 @@ MakeTexture(GLuint *texId)
 	// @ 作業用のフレームバッファを生成
 	GLuint fb;
 	glGenFramebuffers(1, &fb);
-	glBindFramebuffer(GL_FRAMEBUFFER, fb);
 	// テクスチャと紐付ける
+	glBindFramebuffer(GL_FRAMEBUFFER, fb);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
 						   GL_TEXTURE_2D, *texId, 0);
 
@@ -420,8 +424,8 @@ main()
 	// オフスクリーン用のフレームバッファを生成
 	GLuint shadeFrameBuffer;
 	glGenFramebuffers(1, &shadeFrameBuffer);
-	glBindFramebuffer(GL_FRAMEBUFFER, shadeFrameBuffer);
 	// テクスチャと紐付ける
+	glBindFramebuffer(GL_FRAMEBUFFER, shadeFrameBuffer);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
 						   GL_TEXTURE_2D, shadeTex, 0);
 	// 画面いっぱいに広がる大きさのテクスチャデータ
@@ -440,7 +444,7 @@ main()
 	
 
 
-	// @@@ オブジェクト
+	// @@@ 図形を準備
 	TYPE_OBJ obj;
 	// 雛形テクスチャを作成
 	GLuint texId;
@@ -517,24 +521,26 @@ main()
 	atmos.blendEquationId = 0;      // アルファブレンドの計算方法
 	// @ もしコンフィグファイルが存在するなら設定を上書き
 	LoadConfig(CONFIG_FILE, atmos);
-	// @ エフェクト用の変数
-	GLclampf efxFlashIntensity = 0.0f;
+
+
+	// @@@ 画面エフェクトのオブジェクトを生成
+	CLASS_EFX_FLASH EfxFlash;
 
 
 
 	// @@@ GLFWループ -----------------------------------------------------------------------------
 	while (!glfwWindowShouldClose(window)) {
 		glfwSetTime(0.0);
-		if (CheckControllerEvent(window, atmos)) break;
+		if (CheckControllerEvent(window, atmos, EfxFlash)) break;
 
 
-		// @ 非表示テクスチャにオブジェクトを描画
+		// @ 非表示テクスチャに図形を描画
 		glBindFramebuffer(GL_FRAMEBUFFER, shadeFrameBuffer);
 		glBindTexture(GL_TEXTURE_2D, texId);
 		glViewport(0, 0, WIDTH, HEIGHT);
-		glClearColor(atmos.baseCol.r + atmos.filterCol.r + efxFlashIntensity,
-					 atmos.baseCol.g + atmos.filterCol.g + efxFlashIntensity,
-					 atmos.baseCol.b + atmos.filterCol.b + efxFlashIntensity, 
+		glClearColor(atmos.baseCol.r + atmos.filterCol.r + EfxFlash.getIntensity(),
+					 atmos.baseCol.g + atmos.filterCol.g + EfxFlash.getIntensity(),
+					 atmos.baseCol.b + atmos.filterCol.b + EfxFlash.getIntensity(), 
 					 atmos.bler);
 		glClear(GL_COLOR_BUFFER_BIT);
 		// 各設定
@@ -567,7 +573,7 @@ main()
 		glBlendEquation(GL_FUNC_ADD);
 
 
-		// @ 作った画像を、メインフレームの描画バッファに、テクスチャとして写す（クリアせず上書き）
+		// @ 作った画像を、メインフレームの描画バッファに、テクスチャとして転写（クリアせず上書き）
 		glBindFramebuffer(GL_FRAMEBUFFER, showFrameBuffer);
 		glBindTexture(GL_TEXTURE_2D, shadeTex);
 		glViewport(0, 0, WIDTH, HEIGHT);
@@ -588,7 +594,7 @@ main()
 
 
 		// @ 後処理
-		efxFlashIntensity = ProcessEfxFlash();
+		EfxFlash.proceed();
 		// printf("Time(s):%f\n", glfwGetTime());  // 1ループの純粋な処理時間
 		DoWait(static_cast<int64_t>(glfwGetTime()*1000.0), WAIT_TIME);  // CPU負荷軽減（30fps）
 		glfwSwapBuffers(window);
