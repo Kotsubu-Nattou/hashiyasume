@@ -528,38 +528,31 @@ main()
 		if (CheckControllerEvent(window, atmos)) break;
 
 
-		// @ キャプチャ。前のコマを非表示テクスチャにコピー
+		// @ 非表示テクスチャにオブジェクトを描画
 		glBindFramebuffer(GL_FRAMEBUFFER, shadeFrameBuffer);
+		glBindTexture(GL_TEXTURE_2D, texId);
+		glViewport(0, 0, WIDTH, HEIGHT);
 		glClearColor(atmos.baseCol.r + atmos.filterCol.r + efxFlashIntensity,
 					 atmos.baseCol.g + atmos.filterCol.g + efxFlashIntensity,
 					 atmos.baseCol.b + atmos.filterCol.b + efxFlashIntensity, 
 					 atmos.bler);
 		glClear(GL_COLOR_BUFFER_BIT);
-		glCopyImageSubData(showTex,  GL_TEXTURE_2D, 0, 0, 0, 0,
-						   shadeTex, GL_TEXTURE_2D, 0, 0, 0, 0,
-						   WIDTH, HEIGHT, 0);
-
-
-		// @ ポイントスプライト
-		glBindTexture(GL_TEXTURE_2D, texId);
-		glViewport(0, 0, WIDTH, HEIGHT);
+		// 各設定
 		glEnable(GL_TEXTURE_2D);
 		glEnable(GL_BLEND);
 		glEnableClientState(GL_VERTEX_ARRAY);
 		glEnableClientState(GL_COLOR_ARRAY);
 		glBlendFunc(atmos.blendFactor[atmos.blendFactorId].src, atmos.blendFactor[atmos.blendFactorId].dst);
 		glBlendEquation(atmos.blendEquation[atmos.blendEquationId]);
-		// ポイントスプライトを有効にする
+		// ポイントスプライトの設定
 		glEnable(GL_POINT_SPRITE); 
-		// ポイントスプライトに対して、テクスチャ座標の自動計算をON
-		glTexEnvi(GL_POINT_SPRITE, GL_COORD_REPLACE, GL_TRUE);
-		// ポイントスプライトのどの位置をテクスチャ座標の「原点」とするか指定
-		glPointParameteri(GL_POINT_SPRITE_COORD_ORIGIN, GL_UPPER_LEFT);
+		glTexEnvi(GL_POINT_SPRITE, GL_COORD_REPLACE, GL_TRUE);  // テクスチャ座標を自動計算する
+		glPointParameteri(GL_POINT_SPRITE_COORD_ORIGIN, GL_UPPER_LEFT);  // テクスチャ座標の原点を指定
 		// テクスチャの色の付き方。雛形テクスチャの色(0,0,0,濃度)に、付けたい色(r,g,b,1)を合成させる
 		glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_BLEND);
 		// 移動と反射
 		MoveBoll(obj, atmos);
-		// 点を描画
+		// ポイントスプライトを描画
 		glVertexPointer(2, GL_FLOAT, 0, obj.vtx);
 		glColorPointer(4, GL_FLOAT, 0, obj.col);
 		for (int i = 0; i < atmos.useObjNum; ++i) {
@@ -574,7 +567,7 @@ main()
 		glBlendEquation(GL_FUNC_ADD);
 
 
-		// @ 作った画像を、メインフレームの描画バッファに、テクスチャとして描画
+		// @ 作った画像を、メインフレームの描画バッファに、テクスチャとして写す（クリアせず上書き）
 		glBindFramebuffer(GL_FRAMEBUFFER, showFrameBuffer);
 		glBindTexture(GL_TEXTURE_2D, shadeTex);
 		glViewport(0, 0, WIDTH, HEIGHT);
