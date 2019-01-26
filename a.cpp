@@ -9,12 +9,12 @@
 using namespace std;
 
 namespace {
-	const bool IS_FULL_SCREEN = false; // ƒtƒ‹ƒXƒNƒŠ[ƒ“‚©‚Ç‚¤‚© 
-	const GLint WIDTH  = 1280;         // ‰æ–ÊƒTƒCƒYBƒtƒ‹ƒXƒNƒŠ[ƒ“‚Ìê‡‚ÍA‰ğ‘œ“x‚Æ‚È‚é
+	const bool IS_FULL_SCREEN = false; // ãƒ•ãƒ«ã‚¹ã‚¯ãƒªãƒ¼ãƒ³ã‹ã©ã†ã‹ 
+	const GLint WIDTH  = 1280;         // ç”»é¢ã‚µã‚¤ã‚ºã€‚ãƒ•ãƒ«ã‚¹ã‚¯ãƒªãƒ¼ãƒ³ã®å ´åˆã¯ã€è§£åƒåº¦ã¨ãªã‚‹
 	const GLint HEIGHT = 720;
 	const GLint TEX_SIZE = 256;
 	const GLint OBJ_MAX = 400;
-	const int64_t WAIT_TIME = 33;      // 1ƒ‹[ƒv‚ÌÅ’áXVŠÔi’l‚Ífps=60‚Ì‚Ì2ƒtƒŒ[ƒ€‚Ìmsj
+	const int64_t WAIT_TIME = 33;      // 1ãƒ«ãƒ¼ãƒ—ã®æœ€ä½æ›´æ–°æ™‚é–“ï¼ˆå€¤ã¯fps=60ã®æ™‚ã®2ãƒ•ãƒ¬ãƒ¼ãƒ ã®msï¼‰
 	const char *CONFIG_FILE = "Config.bin";
 	const double PI_MUL2   = M_PI * 2.0;
 	const double PI_DIV180 = M_PI / 180.0;
@@ -69,25 +69,25 @@ namespace {
 	};
 
 	class CLASS_EFX_FLASH {
-		// yƒNƒ‰ƒXz‰æ–Ê‚Ì”­ŒõƒGƒtƒFƒNƒg
+		// ã€ã‚¯ãƒ©ã‚¹ã€‘ç”»é¢ã®ç™ºå…‰ã‚¨ãƒ•ã‚§ã‚¯ãƒˆ
 		private:
-			// ƒtƒB[ƒ‹ƒh
-			GLclampf intensity   = 0.0f;  // C++11ˆÈ~‘Î‰‚Ì‰Šú‰»
+			// ãƒ•ã‚£ãƒ¼ãƒ«ãƒ‰
+			GLclampf intensity   = 0.0f;  // C++11ä»¥é™å¯¾å¿œã®åˆæœŸåŒ–
 			const GLclampf decay = 0.9f;
 		
 		public:
 			GLclampf getIntensity() {
-				// yƒQƒbƒ^zŒ»İ‚Ì”­Œõ‹­“x‚ğ•Ô‚·
+				// ã€ã‚²ãƒƒã‚¿ã€‘ç¾åœ¨ã®ç™ºå…‰å¼·åº¦ã‚’è¿”ã™
 				return this->intensity;
 			}
 
 			void bang() {
-				// yƒƒ\ƒbƒhzƒGƒtƒFƒNƒg‚ğƒgƒŠƒK[
+				// ã€ãƒ¡ã‚½ãƒƒãƒ‰ã€‘ã‚¨ãƒ•ã‚§ã‚¯ãƒˆã‚’ãƒˆãƒªã‚¬ãƒ¼
 				this->intensity = 1.0f;
 			}
 
 			void proceed() {
-				// yƒƒ\ƒbƒhzƒGƒtƒFƒNƒg‚ğ„ˆÚ‚·‚é
+				// ã€ãƒ¡ã‚½ãƒƒãƒ‰ã€‘ã‚¨ãƒ•ã‚§ã‚¯ãƒˆã‚’æ¨ç§»ã™ã‚‹
 				this->intensity *= this->decay;
 				if (this->intensity < 0.01f) this->intensity = 0.0f;
 			}
@@ -101,7 +101,7 @@ namespace {
 void
 LoadConfig(const char *fileName, TYPE_ATMOS &atmos)
 {
-	// yŠÖ”zƒRƒ“ƒtƒBƒOƒtƒ@ƒCƒ‹‚ğƒ[ƒhBƒtƒ@ƒCƒ‹‚ªŒ©‚Â‚©‚ç‚È‚¢ê‡A‰½‚à‚µ‚È‚¢
+	// ã€é–¢æ•°ã€‘ã‚³ãƒ³ãƒ•ã‚£ã‚°ãƒ•ã‚¡ã‚¤ãƒ«ã‚’ãƒ­ãƒ¼ãƒ‰ã€‚ãƒ•ã‚¡ã‚¤ãƒ«ãŒè¦‹ã¤ã‹ã‚‰ãªã„å ´åˆã€ä½•ã‚‚ã—ãªã„
 	ifstream fs(fileName, ios::binary);
 
 	if (fs) {
@@ -125,7 +125,7 @@ LoadConfig(const char *fileName, TYPE_ATMOS &atmos)
 void
 SaveConfig(const char *fileName, TYPE_ATMOS &atmos)
 {
-	// yŠÖ”zƒRƒ“ƒtƒBƒOƒtƒ@ƒCƒ‹‚ğƒZ[ƒuBƒtƒ@ƒCƒ‹‚ªŒ©‚Â‚©‚ç‚È‚¢ê‡AV‚µ‚¢ƒtƒ@ƒCƒ‹‚ªì‚ç‚ê‚é
+	// ã€é–¢æ•°ã€‘ã‚³ãƒ³ãƒ•ã‚£ã‚°ãƒ•ã‚¡ã‚¤ãƒ«ã‚’ã‚»ãƒ¼ãƒ–ã€‚ãƒ•ã‚¡ã‚¤ãƒ«ãŒè¦‹ã¤ã‹ã‚‰ãªã„å ´åˆã€æ–°ã—ã„ãƒ•ã‚¡ã‚¤ãƒ«ãŒä½œã‚‰ã‚Œã‚‹
 	ofstream fs(fileName, ios::binary);
 	fs.write(reinterpret_cast<char*>(&atmos), sizeof(TYPE_ATMOS));
 	fs.close();
@@ -140,18 +140,18 @@ SaveConfig(const char *fileName, TYPE_ATMOS &atmos)
 bool
 CheckControllerEvent(GLFWwindow *window, TYPE_ATMOS &atmos, CLASS_EFX_FLASH &EfxFlash)
 {
-	// yŠÖ”z“ü—Í‘€ì‚Ì”»’è
-	// ƒ–ß‚è’l„ƒAƒvƒŠI—¹‚Ì‘€ì‚È‚çtrueA‚»‚êˆÈŠOfalse
-	static bool flgMouseBtn[GLFW_MOUSE_BUTTON_LAST+1];  // ‰Šú‰»•s—vBC++‚Ìstatic•Ï”‚Í©“®‚Å‰Šú‰»
-	static bool flgKey[GLFW_KEY_LAST+1];                // ‰Šú‰»•s—vBC++‚Ìstatic•Ï”‚Í©“®‚Å‰Šú‰»
+	// ã€é–¢æ•°ã€‘å…¥åŠ›æ“ä½œã®åˆ¤å®š
+	// ï¼œæˆ»ã‚Šå€¤ï¼ã‚¢ãƒ—ãƒªçµ‚äº†ã®æ“ä½œãªã‚‰trueã€ãã‚Œä»¥å¤–false
+	static bool flgMouseBtn[GLFW_MOUSE_BUTTON_LAST+1];  // åˆæœŸåŒ–ä¸è¦ã€‚C++ã®staticå¤‰æ•°ã¯è‡ªå‹•ã§åˆæœŸåŒ–
+	static bool flgKey[GLFW_KEY_LAST+1];                // åˆæœŸåŒ–ä¸è¦ã€‚C++ã®staticå¤‰æ•°ã¯è‡ªå‹•ã§åˆæœŸåŒ–
 
 
-	// @ ƒAƒvƒŠI—¹‘€ì
+	// @ ã‚¢ãƒ—ãƒªçµ‚äº†æ“ä½œ
 	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) return true;
 	if (glfwGetKey(window, GLFW_KEY_SPACE)  == GLFW_PRESS) return true;
 	if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) return true;
 
-	// @ •µˆÍ‹Cƒ‰ƒ“ƒ_ƒ€
+	// @ é›°å›²æ°—ãƒ©ãƒ³ãƒ€ãƒ 
 	if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS) {
 		if (!flgMouseBtn[GLFW_MOUSE_BUTTON_RIGHT]) {
 			atmos.useObjNum     = 3 + rand() % (OBJ_MAX-3);
@@ -173,7 +173,7 @@ CheckControllerEvent(GLFWwindow *window, TYPE_ATMOS &atmos, CLASS_EFX_FLASH &Efx
 		flgMouseBtn[GLFW_MOUSE_BUTTON_RIGHT] = false;
 	}
 
-	// @ ‰æ–Ê‚Ì–¾‚é‚³’²®
+	// @ ç”»é¢ã®æ˜ã‚‹ã•èª¿æ•´
 	if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
 		atmos.brightness += 0.05f;
 		if (atmos.brightness > 1.0f) atmos.brightness = 1.0f;
@@ -183,8 +183,8 @@ CheckControllerEvent(GLFWwindow *window, TYPE_ATMOS &atmos, CLASS_EFX_FLASH &Efx
 		if (atmos.brightness < 0.0f) atmos.brightness = 0.0f;
 	}
 
-	// @ ƒJƒ‰[ƒtƒBƒ‹ƒ^[
-	// ÔF
+	// @ ã‚«ãƒ©ãƒ¼ãƒ•ã‚£ãƒ«ã‚¿ãƒ¼
+	// èµ¤è‰²
 	if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS) {
 		if (!flgKey[GLFW_KEY_R]) {
 			atmos.filterCol.r = (atmos.filterCol.r == 0.0f) ? atmos.filterColVol : 0.0f;
@@ -194,7 +194,7 @@ CheckControllerEvent(GLFWwindow *window, TYPE_ATMOS &atmos, CLASS_EFX_FLASH &Efx
 	if (glfwGetKey(window, GLFW_KEY_R) == GLFW_RELEASE) {
 		flgKey[GLFW_KEY_R] = false;
 	}
-	// —ÎF
+	// ç·‘è‰²
 	if (glfwGetKey(window, GLFW_KEY_G) == GLFW_PRESS) {
 		if (!flgKey[GLFW_KEY_G]) {
 			atmos.filterCol.g = (atmos.filterCol.g == 0.0f) ? atmos.filterColVol : 0.0f;
@@ -204,7 +204,7 @@ CheckControllerEvent(GLFWwindow *window, TYPE_ATMOS &atmos, CLASS_EFX_FLASH &Efx
 	if (glfwGetKey(window, GLFW_KEY_G) == GLFW_RELEASE) {
 		flgKey[GLFW_KEY_G] = false;
 	}
-	// ÂF
+	// é’è‰²
 	if (glfwGetKey(window, GLFW_KEY_B) == GLFW_PRESS) {
 		if (!flgKey[GLFW_KEY_B]) {
 			atmos.filterCol.b = (atmos.filterCol.b == 0.0f) ? atmos.filterColVol : 0.0f;
@@ -215,7 +215,7 @@ CheckControllerEvent(GLFWwindow *window, TYPE_ATMOS &atmos, CLASS_EFX_FLASH &Efx
 		flgKey[GLFW_KEY_B] = false;
 	}
 
-	// @ ƒAƒ‹ƒtƒ@ƒuƒŒƒ“ƒfƒBƒ“ƒOŒW”‚Ì‘g‚İ‡‚í‚¹
+	// @ ã‚¢ãƒ«ãƒ•ã‚¡ãƒ–ãƒ¬ãƒ³ãƒ‡ã‚£ãƒ³ã‚°ä¿‚æ•°ã®çµ„ã¿åˆã‚ã›
 	if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) {
 		if (!flgKey[GLFW_KEY_LEFT]) {
 			atmos.blendFactorId -= 1;
@@ -237,7 +237,7 @@ CheckControllerEvent(GLFWwindow *window, TYPE_ATMOS &atmos, CLASS_EFX_FLASH &Efx
 		flgKey[GLFW_KEY_RIGHT] = false;
 	}
 
-	// @ •µˆÍ‹Cƒf[ƒ^‚ÌƒZ[ƒu
+	// @ é›°å›²æ°—ãƒ‡ãƒ¼ã‚¿ã®ã‚»ãƒ¼ãƒ–
 	if (glfwGetKey(window, GLFW_KEY_ENTER) == GLFW_PRESS) {
 		if (!flgKey[GLFW_KEY_ENTER]) {
 			SaveConfig(CONFIG_FILE, atmos);
@@ -260,10 +260,10 @@ CheckControllerEvent(GLFWwindow *window, TYPE_ATMOS &atmos, CLASS_EFX_FLASH &Efx
 void
 DoWait(const int64_t elapse_ms, const int64_t wait_ms)
 {
-	// yŠÖ”zˆ—ŠÔ‚É‰‚¶‚½ƒEƒFƒCƒg
-	// ƒˆø”„elapse_ms‚ÍŒv‘ªŠJn‚©‚ç‚ÌŒo‰ßŠÔBwait_ms‚ÍÅ’áƒEƒFƒCƒg‚·‚éŠÔB
-	// ÀÛ‚ÉƒEƒFƒCƒg‚·‚éŠÔ = wait_ms - elapse_ms
-	// ’PˆÊ‚Í‚·‚×‚Äƒ~ƒŠ•bBWindowsˆË‘¶iŒv‘ªŠJn“_‚ÅglfwSetTime(0.0)‚ğÀs‚µ‚Ä‚¨‚­‚±‚Æj
+	// ã€é–¢æ•°ã€‘å‡¦ç†æ™‚é–“ã«å¿œã˜ãŸã‚¦ã‚§ã‚¤ãƒˆ
+	// ï¼œå¼•æ•°ï¼elapse_msã¯è¨ˆæ¸¬é–‹å§‹ã‹ã‚‰ã®çµŒéæ™‚é–“ã€‚wait_msã¯æœ€ä½ã‚¦ã‚§ã‚¤ãƒˆã™ã‚‹æ™‚é–“ã€‚
+	// å®Ÿéš›ã«ã‚¦ã‚§ã‚¤ãƒˆã™ã‚‹æ™‚é–“ = wait_ms - elapse_ms
+	// å˜ä½ã¯ã™ã¹ã¦ãƒŸãƒªç§’ã€‚Windowsä¾å­˜ï¼ˆè¨ˆæ¸¬é–‹å§‹ç‚¹ã§glfwSetTime(0.0)ã‚’å®Ÿè¡Œã—ã¦ãŠãã“ã¨ï¼‰
 	int64_t ms = wait_ms - elapse_ms;
 	if (ms <= 0) return;
 	if (ms > wait_ms) ms = wait_ms;
@@ -279,7 +279,7 @@ DoWait(const int64_t elapse_ms, const int64_t wait_ms)
 void
 MoveBoll(TYPE_OBJ &obj, const TYPE_ATMOS &atmos)
 {
-	// yŠÖ”zƒIƒuƒWƒFƒNƒg‚ÌˆÚ“®‚Æ”½Ë
+	// ã€é–¢æ•°ã€‘ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã®ç§»å‹•ã¨åå°„
 	for (int i = 0; i < atmos.useObjNum; ++i) {
 		float rad = static_cast<float>(obj.angle[i] * PI_DIV180);
 		obj.vtx[i].x += cos(rad) * obj.speed[i] * atmos.fixSpeed;
@@ -302,10 +302,10 @@ MoveBoll(TYPE_OBJ &obj, const TYPE_ATMOS &atmos)
 void
 MakeTexture(GLuint *texId)
 {
-	// yŠÖ”z—Œ`‚ÌƒeƒNƒXƒ`ƒƒ‚ğì¬
-	// <–ß‚è’l> ˆø”‚ÉƒeƒNƒXƒ`ƒƒ¯•Êq‚ğ•Ô‚·
+	// ã€é–¢æ•°ã€‘é››å½¢ã®ãƒ†ã‚¯ã‚¹ãƒãƒ£ã‚’ä½œæˆ
+	// <æˆ»ã‚Šå€¤> å¼•æ•°ã«ãƒ†ã‚¯ã‚¹ãƒãƒ£è­˜åˆ¥å­ã‚’è¿”ã™
 
-	// @ ƒeƒNƒXƒ`ƒƒ‚ğ¶¬
+	// @ ãƒ†ã‚¯ã‚¹ãƒãƒ£ã‚’ç”Ÿæˆ
 	glGenTextures(1, texId);
 	glBindTexture(GL_TEXTURE_2D, *texId);
 	glTexImage2D(GL_TEXTURE_2D,
@@ -315,26 +315,26 @@ MakeTexture(GLuint *texId)
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
 
-	// @ ì‹Æ—p‚ÌƒtƒŒ[ƒ€ƒoƒbƒtƒ@‚ğ¶¬
+	// @ ä½œæ¥­ç”¨ã®ãƒ•ãƒ¬ãƒ¼ãƒ ãƒãƒƒãƒ•ã‚¡ã‚’ç”Ÿæˆ
 	GLuint fb;
 	glGenFramebuffers(1, &fb);
-	// ƒeƒNƒXƒ`ƒƒ‚Æ•R•t‚¯‚é
+	// ãƒ†ã‚¯ã‚¹ãƒãƒ£ã¨ç´ä»˜ã‘ã‚‹
 	glBindFramebuffer(GL_FRAMEBUFFER, fb);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
 						   GL_TEXTURE_2D, *texId, 0);
 
 
-	// @ ƒeƒNƒXƒ`ƒƒ‚Ì“à—e‚ğ•`‰æ
+	// @ ãƒ†ã‚¯ã‚¹ãƒãƒ£ã®å†…å®¹ã‚’æç”»
 	glBindFramebuffer(GL_FRAMEBUFFER, fb);
 	glViewport(0, 0, TEX_SIZE, TEX_SIZE);
 	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 	glClear(GL_COLOR_BUFFER_BIT);
 	glEnableClientState(GL_VERTEX_ARRAY);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);  // ’Êí‚Ì‡¬
-	int divide = 50;      // ‰~‚Ì•ªŠ„”
-	GLfloat size = 1.0f;  // ‰~‚Ì‘å‚«‚³
-	GLfloat angle;        // Šp“x
-	TYPE_POS vtx[divide]; // ’¸“_”z—ñB—v‘f”‚Í•ªŠ„”
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);  // é€šå¸¸ã®åˆæˆ
+	int divide = 50;      // å††ã®åˆ†å‰²æ•°
+	GLfloat size = 1.0f;  // å††ã®å¤§ãã•
+	GLfloat angle;        // è§’åº¦
+	TYPE_POS vtx[divide]; // é ‚ç‚¹é…åˆ—ã€‚è¦ç´ æ•°ã¯åˆ†å‰²æ•°
 	for (int i = 0; i < 20; ++i) {
 		size = 1.0f - i / 50.0f;
 		for (int j = 0; j < divide; ++j) {
@@ -343,13 +343,13 @@ MakeTexture(GLuint *texId)
 			vtx[j].y = static_cast<GLfloat>(cos(angle) * size);
 		}
 		glVertexPointer(2, GL_FLOAT, 0, vtx);
-		glColor4f(0.0f, 0.0f, 0.0f, 0.02f+i/48.0f); // Œã‚ÅF‚Ã‚¯‚·‚é‚Ì‚Årgb‚Í0AƒAƒ‹ƒtƒ@‚ª”Z‚³‚É‚È‚éB‚Ü‚½Ai/n‚Ìn‚ğ¬‚³‚­‚·‚é‚Æ‘N‚â‚©‚É‚È‚é
+		glColor4f(0.0f, 0.0f, 0.0f, 0.02f+i/48.0f); // å¾Œã§è‰²ã¥ã‘ã™ã‚‹ã®ã§rgbã¯0ã€ã‚¢ãƒ«ãƒ•ã‚¡ãŒæ¿ƒã•ã«ãªã‚‹ã€‚ã¾ãŸã€i/nã®nã‚’å°ã•ãã™ã‚‹ã¨é®®ã‚„ã‹ã«ãªã‚‹
 		glDrawArrays(GL_TRIANGLE_FAN, 0, divide);
 	}
 	glDisableClientState(GL_VERTEX_ARRAY);
 
 
-	// ì‹Æ—p‚ÌƒtƒŒ[ƒ€ƒoƒbƒtƒ@‚ğ”jŠü
+	// ä½œæ¥­ç”¨ã®ãƒ•ãƒ¬ãƒ¼ãƒ ãƒãƒƒãƒ•ã‚¡ã‚’ç ´æ£„
 	glDeleteFramebuffers(1, &fb);
 
 	return;
@@ -360,7 +360,7 @@ MakeTexture(GLuint *texId)
 
 
 // ------------------------------------------------------------------------------------------
-// yƒƒCƒ“z
+// ã€ãƒ¡ã‚¤ãƒ³ã€‘
 // ------------------------------------------------------------------------------------------
 
 
@@ -370,14 +370,14 @@ MakeTexture(GLuint *texId)
 int
 main()
 {
-	// @@@ OpenGL‹y‚ÑAGLFW‚Ì‰Šúİ’è
-	// GLFW‚ğ‰Šú‰»
+	// @@@ OpenGLåŠã³ã€GLFWã®åˆæœŸè¨­å®š
+	// GLFWã‚’åˆæœŸåŒ–
 	if (!glfwInit()) return -1;
-	// ƒEƒBƒ“ƒhƒE‚Ì“Á«
+	// ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã®ç‰¹æ€§
 	glfwWindowHint(GLFW_SAMPLES, 4);
-	// ƒEƒBƒ“ƒhƒE‚ğ¶¬‚µA¯•Êq‚ğæ“¾
-	// glfwCreateWindow‚Ì‘æ4ˆø”‚ÉglfwGetPrimaryMonitor‚ğ“n‚·‚ÆAƒtƒ‹ƒXƒNƒŠ[ƒ“‚É‚È‚éB
-	// ‚»‚ÌÛAwidth‚Æheight‚ª‰ğ‘œ“x‚Æ‚È‚éB‚±‚±‚Å‚ÍƒAƒXƒyƒNƒg”ä16:9‚ÌA1280x720i720pj‚ğw’è‚µ‚½B
+	// ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã‚’ç”Ÿæˆã—ã€è­˜åˆ¥å­ã‚’å–å¾—
+	// glfwCreateWindowã®ç¬¬4å¼•æ•°ã«glfwGetPrimaryMonitorã‚’æ¸¡ã™ã¨ã€ãƒ•ãƒ«ã‚¹ã‚¯ãƒªãƒ¼ãƒ³ã«ãªã‚‹ã€‚
+	// ãã®éš›ã€widthã¨heightãŒè§£åƒåº¦ã¨ãªã‚‹ã€‚ã“ã“ã§ã¯ã‚¢ã‚¹ãƒšã‚¯ãƒˆæ¯”16:9ã®ã€1280x720ï¼ˆ720pï¼‰ã‚’æŒ‡å®šã—ãŸã€‚
 	GLFWmonitor *monitor = NULL;
 	if (IS_FULL_SCREEN) monitor = glfwGetPrimaryMonitor();
 	GLFWwindow *window = glfwCreateWindow(WIDTH, HEIGHT, "myApp", monitor , NULL);
@@ -386,25 +386,25 @@ main()
 		glfwTerminate();
 		return -1;
 	}
-	// ƒJƒŒƒ“ƒgƒEƒBƒ“ƒhƒE‚Éw’è
+	// ã‚«ãƒ¬ãƒ³ãƒˆã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã«æŒ‡å®š
 	glfwMakeContextCurrent(window);
-	// GLEW‚ğ‰Šú‰»
+	// GLEWã‚’åˆæœŸåŒ–
 	if(glewInit() != GLEW_OK) {
 		glfwTerminate();
 		return -1;
 	}
-	// ƒfƒtƒHƒ‹ƒg‚ÌƒtƒŒ[ƒ€ƒoƒbƒtƒ@¯•Êq‚ğæ“¾iŒã‚Åg—pj
+	// ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆã®ãƒ•ãƒ¬ãƒ¼ãƒ ãƒãƒƒãƒ•ã‚¡è­˜åˆ¥å­ã‚’å–å¾—ï¼ˆå¾Œã§ä½¿ç”¨ï¼‰
 	GLint showFrameBuffer;
 	glGetIntegerv(GL_FRAMEBUFFER_BINDING, &showFrameBuffer);
-	// ‚’¼“¯Šú
-	glfwSwapInterval(1);  // Å‹ß‚ÍOS©‘Ì‚ªƒ_ƒuƒ‹ƒoƒbƒtƒ@‚ğg‚¤‚½‚ßA‚±‚Ìİ’è‚Í–³‹‚³‚ê‚é‰Â”\«‚ª‚ ‚é
-	// ƒ}ƒEƒXƒJ[ƒ\ƒ‹‚ğ”ñ•\¦‚É‚·‚é
+	// å‚ç›´åŒæœŸ
+	glfwSwapInterval(1);  // æœ€è¿‘ã¯OSè‡ªä½“ãŒãƒ€ãƒ–ãƒ«ãƒãƒƒãƒ•ã‚¡ã‚’ä½¿ã†ãŸã‚ã€ã“ã®è¨­å®šã¯ç„¡è¦–ã•ã‚Œã‚‹å¯èƒ½æ€§ãŒã‚ã‚‹
+	// ãƒã‚¦ã‚¹ã‚«ãƒ¼ã‚½ãƒ«ã‚’éè¡¨ç¤ºã«ã™ã‚‹
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
 
 
 
-	// @@@ ƒIƒtƒXƒNƒŠ[ƒ“ƒŒƒ“ƒ_ƒŠƒ“ƒO‚Ì€”õ
-	// ƒeƒNƒXƒ`ƒƒ‚ğ2–‡¶¬
+	// @@@ ã‚ªãƒ•ã‚¹ã‚¯ãƒªãƒ¼ãƒ³ãƒ¬ãƒ³ãƒ€ãƒªãƒ³ã‚°ã®æº–å‚™
+	// ãƒ†ã‚¯ã‚¹ãƒãƒ£ã‚’2æšç”Ÿæˆ
 	GLuint showTex;
 	glGenTextures(1, &showTex);
 	glBindTexture(GL_TEXTURE_2D, showTex);
@@ -421,14 +421,14 @@ main()
 				 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	// ƒIƒtƒXƒNƒŠ[ƒ“—p‚ÌƒtƒŒ[ƒ€ƒoƒbƒtƒ@‚ğ¶¬
+	// ã‚ªãƒ•ã‚¹ã‚¯ãƒªãƒ¼ãƒ³ç”¨ã®ãƒ•ãƒ¬ãƒ¼ãƒ ãƒãƒƒãƒ•ã‚¡ã‚’ç”Ÿæˆ
 	GLuint shadeFrameBuffer;
 	glGenFramebuffers(1, &shadeFrameBuffer);
-	// ƒeƒNƒXƒ`ƒƒ‚Æ•R•t‚¯‚é
+	// ãƒ†ã‚¯ã‚¹ãƒãƒ£ã¨ç´ä»˜ã‘ã‚‹
 	glBindFramebuffer(GL_FRAMEBUFFER, shadeFrameBuffer);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
 						   GL_TEXTURE_2D, shadeTex, 0);
-	// ‰æ–Ê‚¢‚Á‚Ï‚¢‚ÉL‚ª‚é‘å‚«‚³‚ÌƒeƒNƒXƒ`ƒƒƒf[ƒ^
+	// ç”»é¢ã„ã£ã±ã„ã«åºƒãŒã‚‹å¤§ãã•ã®ãƒ†ã‚¯ã‚¹ãƒãƒ£ãƒ‡ãƒ¼ã‚¿
 	const GLfloat groundTexVtx[] = {
 		-1.0f, -1.0f,
 		 1.0f, -1.0f,
@@ -444,18 +444,18 @@ main()
 	
 
 
-	// @@@ }Œ`‚ğ€”õ
+	// @@@ å›³å½¢ã‚’æº–å‚™
 	TYPE_OBJ obj;
-	// —Œ`ƒeƒNƒXƒ`ƒƒ‚ğì¬
+	// é››å½¢ãƒ†ã‚¯ã‚¹ãƒãƒ£ã‚’ä½œæˆ
 	GLuint texId;
 	MakeTexture(&texId);
-	// ’¸“_‚ğƒ‰ƒ“ƒ_ƒ€‚Å¶¬
+	// é ‚ç‚¹ã‚’ãƒ©ãƒ³ãƒ€ãƒ ã§ç”Ÿæˆ
 	srand((unsigned int)time(NULL));
 	for (int i = 0; i < OBJ_MAX; ++i) {
 		obj.vtx[i].x = (rand() % 10000) / 5000.0f - 1.0f;
 		obj.vtx[i].y = (rand() % 10000) / 5000.0f - 1.0f;
 	}
-	// ƒJƒ‰[‚ğƒ‰ƒ“ƒ_ƒ€‚Å¶¬
+	// ã‚«ãƒ©ãƒ¼ã‚’ãƒ©ãƒ³ãƒ€ãƒ ã§ç”Ÿæˆ
 	for (int i = 0; i < OBJ_MAX; ++i) {
 		do {
 			obj.col[i].r = (rand() % 1000) / 1000.0f;
@@ -464,77 +464,77 @@ main()
 		} while(obj.col[i].r+obj.col[i].g+obj.col[i].b < 0.05f);
 		obj.col[i].a = 1.0f;
 	}
-	// ‚»‚Ì‘¼‚Ìƒf[ƒ^‚ğƒ‰ƒ“ƒ_ƒ€‚Å¶¬
+	// ãã®ä»–ã®ãƒ‡ãƒ¼ã‚¿ã‚’ãƒ©ãƒ³ãƒ€ãƒ ã§ç”Ÿæˆ
 	for (int i = 0; i < OBJ_MAX; ++i) {
-		// ƒTƒCƒY
+		// ã‚µã‚¤ã‚º
 		obj.size[i]  = 10.0f + (rand() % 150);
 		if (rand() % 5 == 1) obj.size[i] *= 2.0f;
-		// •ûŠp
+		// æ–¹è§’
 		do {
 			obj.angle[i] = rand() % 360;
 		} while(obj.angle[i] % 90 == 0);
-		// ƒXƒs[ƒh
+		// ã‚¹ãƒ”ãƒ¼ãƒ‰
 		obj.speed[i] = 0.001f + (rand() % 100) / 8000.0f;
 	}
 
 
 
-	// @@@ •µˆÍ‹Cƒpƒ‰ƒ[ƒ^
+	// @@@ é›°å›²æ°—ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿
 	TYPE_ATMOS atmos;
-	// @ ƒAƒ‹ƒtƒ@ƒuƒŒƒ“ƒhŒW”‚Ì‘g‚İ‡‚í‚¹
-	// ’Êí‚Ì‡¬
+	// @ ã‚¢ãƒ«ãƒ•ã‚¡ãƒ–ãƒ¬ãƒ³ãƒ‰ä¿‚æ•°ã®çµ„ã¿åˆã‚ã›
+	// é€šå¸¸ã®åˆæˆ
 	atmos.blendFactor[0].src = GL_SRC_ALPHA;
 	atmos.blendFactor[0].dst = GL_ONE_MINUS_SRC_ALPHA;
-	// ‰ÁZ‡¬
+	// åŠ ç®—åˆæˆ
 	atmos.blendFactor[1].src = GL_SRC_ALPHA;
 	atmos.blendFactor[1].dst = GL_ONE;
-	// ƒwƒ“‚È‡¬
+	// ãƒ˜ãƒ³ãªåˆæˆ
 	atmos.blendFactor[2].src = GL_SRC_ALPHA_SATURATE;
 	atmos.blendFactor[2].dst = GL_ONE;
-	// ƒlƒK‡¬
+	// ãƒã‚¬åˆæˆ
 	atmos.blendFactor[3].src = GL_SRC_ALPHA_SATURATE;
 	atmos.blendFactor[3].dst = GL_ONE_MINUS_SRC_ALPHA;
-	// ‘g‚İ‡‚í‚¹‚Ì‘”
+	// çµ„ã¿åˆã‚ã›ã®ç·æ•°
 	atmos.blendFactorMax     = 4;
-	// @ ƒAƒ‹ƒtƒ@ƒuƒŒƒ“ƒh‚ÌŒvZ•û–@
-	// ’Êí‚Ì‰ÁZiƒeƒNƒXƒ`ƒƒ‚ÌŠG‚ªo—Í‚³‚ê‚éj
+	// @ ã‚¢ãƒ«ãƒ•ã‚¡ãƒ–ãƒ¬ãƒ³ãƒ‰ã®è¨ˆç®—æ–¹æ³•
+	// é€šå¸¸ã®åŠ ç®—ï¼ˆãƒ†ã‚¯ã‚¹ãƒãƒ£ã®çµµãŒå‡ºåŠ›ã•ã‚Œã‚‹ï¼‰
 	atmos.blendEquation[0] = GL_FUNC_ADD;
-	// —¼•Ó‚Ì‘å‚«‚¢‚Ù‚¤‚ğ‚»‚Ì‚Ü‚Üg—piƒeƒNƒXƒ`ƒƒ˜g‚ÌlŠpŒ`‚ªo—Í‚³‚ê‚éj
+	// ä¸¡è¾ºã®å¤§ãã„ã»ã†ã‚’ãã®ã¾ã¾ä½¿ç”¨ï¼ˆãƒ†ã‚¯ã‚¹ãƒãƒ£æ ã®å››è§’å½¢ãŒå‡ºåŠ›ã•ã‚Œã‚‹ï¼‰
 	atmos.blendEquation[1] = GL_MAX;
-	// ŒvZ•û–@‚Ì‘”
+	// è¨ˆç®—æ–¹æ³•ã®ç·æ•°
 	atmos.blendEquationMax = 2;
-	// @ Še‰Šú’l
-	atmos.useObjNum       = 200;    // •\¦‚·‚éƒ{[ƒ‹‚Ì”
-	atmos.bler            = 0.0f;   // ’l‚ª’á‚¢‚Ù‚Çƒuƒ‰[‚ª‚©‚©‚é
-	atmos.focas           = 0.12f;  // ’l‚ª‚‚¢‚Ù‚Ç‘N–¾‚É‚È‚é
-	atmos.brightness      = 1.0f;   // ‰æ–Ê‚Ì–¾‚é‚³
-	atmos.baseCol.r       = 0.0f;   // ‰º’n‚ÌFi‘å‚«‚¢‚Æ–O˜a‚·‚éj
+	// @ å„åˆæœŸå€¤
+	atmos.useObjNum       = 200;    // è¡¨ç¤ºã™ã‚‹ãƒœãƒ¼ãƒ«ã®æ•°
+	atmos.bler            = 0.0f;   // å€¤ãŒä½ã„ã»ã©ãƒ–ãƒ©ãƒ¼ãŒã‹ã‹ã‚‹
+	atmos.focas           = 0.12f;  // å€¤ãŒé«˜ã„ã»ã©é®®æ˜ã«ãªã‚‹
+	atmos.brightness      = 1.0f;   // ç”»é¢ã®æ˜ã‚‹ã•
+	atmos.baseCol.r       = 0.0f;   // ä¸‹åœ°ã®è‰²ï¼ˆå¤§ãã„ã¨é£½å’Œã™ã‚‹ï¼‰
 	atmos.baseCol.g       = 0.0f;
 	atmos.baseCol.b       = 0.0f;
-	atmos.filterCol.r     = 0.0f;   // ƒJƒ‰[ƒtƒBƒ‹ƒ^[
+	atmos.filterCol.r     = 0.0f;   // ã‚«ãƒ©ãƒ¼ãƒ•ã‚£ãƒ«ã‚¿ãƒ¼
 	atmos.filterCol.g     = 0.0f;
 	atmos.filterCol.b     = 0.0f;
-	atmos.filterColVol    = 0.2f;   // ƒJƒ‰[ƒtƒBƒ‹ƒ^[‚Ì”Z‚³
-	atmos.fixSize         = 1.0f;   // ƒ{[ƒ‹‚ÌƒTƒCƒY‚Ì’²®
-	atmos.fixSpeed        = 1.0f;   // ƒ{[ƒ‹‚ÌƒXƒs[ƒh‚Ì’²®
-	atmos.blendFactorId   = 1;      // ƒAƒ‹ƒtƒ@ƒuƒŒƒ“ƒhŒW”‚Ì‘g‚İ‡‚í‚¹
-	atmos.blendEquationId = 0;      // ƒAƒ‹ƒtƒ@ƒuƒŒƒ“ƒh‚ÌŒvZ•û–@
-	// @ ‚à‚µƒRƒ“ƒtƒBƒOƒtƒ@ƒCƒ‹‚ª‘¶İ‚·‚é‚È‚çİ’è‚ğã‘‚«
+	atmos.filterColVol    = 0.2f;   // ã‚«ãƒ©ãƒ¼ãƒ•ã‚£ãƒ«ã‚¿ãƒ¼ã®æ¿ƒã•
+	atmos.fixSize         = 1.0f;   // ãƒœãƒ¼ãƒ«ã®ã‚µã‚¤ã‚ºã®èª¿æ•´
+	atmos.fixSpeed        = 1.0f;   // ãƒœãƒ¼ãƒ«ã®ã‚¹ãƒ”ãƒ¼ãƒ‰ã®èª¿æ•´
+	atmos.blendFactorId   = 1;      // ã‚¢ãƒ«ãƒ•ã‚¡ãƒ–ãƒ¬ãƒ³ãƒ‰ä¿‚æ•°ã®çµ„ã¿åˆã‚ã›
+	atmos.blendEquationId = 0;      // ã‚¢ãƒ«ãƒ•ã‚¡ãƒ–ãƒ¬ãƒ³ãƒ‰ã®è¨ˆç®—æ–¹æ³•
+	// @ ã‚‚ã—ã‚³ãƒ³ãƒ•ã‚£ã‚°ãƒ•ã‚¡ã‚¤ãƒ«ãŒå­˜åœ¨ã™ã‚‹ãªã‚‰è¨­å®šã‚’ä¸Šæ›¸ã
 	LoadConfig(CONFIG_FILE, atmos);
 
 
-	// @@@ ‰æ–ÊƒGƒtƒFƒNƒg‚ÌƒIƒuƒWƒFƒNƒg‚ğ¶¬
+	// @@@ ç”»é¢ã‚¨ãƒ•ã‚§ã‚¯ãƒˆã®ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã‚’ç”Ÿæˆ
 	CLASS_EFX_FLASH EfxFlash;
 
 
 
-	// @@@ GLFWƒ‹[ƒv -----------------------------------------------------------------------------
+	// @@@ GLFWãƒ«ãƒ¼ãƒ— -----------------------------------------------------------------------------
 	while (!glfwWindowShouldClose(window)) {
 		glfwSetTime(0.0);
 		if (CheckControllerEvent(window, atmos, EfxFlash)) break;
 
 
-		// @ ”ñ•\¦ƒeƒNƒXƒ`ƒƒ‚É}Œ`‚ğ•`‰æ
+		// @ éè¡¨ç¤ºãƒ†ã‚¯ã‚¹ãƒãƒ£ã«å›³å½¢ã‚’æç”»
 		glBindFramebuffer(GL_FRAMEBUFFER, shadeFrameBuffer);
 		glBindTexture(GL_TEXTURE_2D, texId);
 		glViewport(0, 0, WIDTH, HEIGHT);
@@ -543,22 +543,22 @@ main()
 					 atmos.baseCol.b + atmos.filterCol.b + EfxFlash.getIntensity(), 
 					 atmos.bler);
 		glClear(GL_COLOR_BUFFER_BIT);
-		// Šeİ’è
+		// å„è¨­å®š
 		glEnable(GL_TEXTURE_2D);
 		glEnable(GL_BLEND);
 		glEnableClientState(GL_VERTEX_ARRAY);
 		glEnableClientState(GL_COLOR_ARRAY);
 		glBlendFunc(atmos.blendFactor[atmos.blendFactorId].src, atmos.blendFactor[atmos.blendFactorId].dst);
 		glBlendEquation(atmos.blendEquation[atmos.blendEquationId]);
-		// ƒ|ƒCƒ“ƒgƒXƒvƒ‰ƒCƒg‚Ìİ’è
+		// ãƒã‚¤ãƒ³ãƒˆã‚¹ãƒ—ãƒ©ã‚¤ãƒˆã®è¨­å®š
 		glEnable(GL_POINT_SPRITE); 
-		glTexEnvi(GL_POINT_SPRITE, GL_COORD_REPLACE, GL_TRUE);  // ƒeƒNƒXƒ`ƒƒÀ•W‚ğ©“®ŒvZ‚·‚é
-		glPointParameteri(GL_POINT_SPRITE_COORD_ORIGIN, GL_UPPER_LEFT);  // ƒeƒNƒXƒ`ƒƒÀ•W‚ÌŒ´“_‚ğw’è
-		// ƒeƒNƒXƒ`ƒƒ‚ÌF‚Ì•t‚«•ûB—Œ`ƒeƒNƒXƒ`ƒƒ‚ÌF(0,0,0,”Z“x)‚ÉA•t‚¯‚½‚¢F(r,g,b,1)‚ğ‡¬‚³‚¹‚é
+		glTexEnvi(GL_POINT_SPRITE, GL_COORD_REPLACE, GL_TRUE);  // ãƒ†ã‚¯ã‚¹ãƒãƒ£åº§æ¨™ã‚’è‡ªå‹•è¨ˆç®—ã™ã‚‹
+		glPointParameteri(GL_POINT_SPRITE_COORD_ORIGIN, GL_UPPER_LEFT);  // ãƒ†ã‚¯ã‚¹ãƒãƒ£åº§æ¨™ã®åŸç‚¹ã‚’æŒ‡å®š
+		// ãƒ†ã‚¯ã‚¹ãƒãƒ£ã®è‰²ã®ä»˜ãæ–¹ã€‚é››å½¢ãƒ†ã‚¯ã‚¹ãƒãƒ£ã®è‰²(0,0,0,æ¿ƒåº¦)ã«ã€ä»˜ã‘ãŸã„è‰²(r,g,b,1)ã‚’åˆæˆã•ã›ã‚‹
 		glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_BLEND);
-		// ˆÚ“®‚Æ”½Ë
+		// ç§»å‹•ã¨åå°„
 		MoveBoll(obj, atmos);
-		// ƒ|ƒCƒ“ƒgƒXƒvƒ‰ƒCƒg‚ğ•`‰æ
+		// ãƒã‚¤ãƒ³ãƒˆã‚¹ãƒ—ãƒ©ã‚¤ãƒˆã‚’æç”»
 		glVertexPointer(2, GL_FLOAT, 0, obj.vtx);
 		glColorPointer(4, GL_FLOAT, 0, obj.col);
 		for (int i = 0; i < atmos.useObjNum; ++i) {
@@ -573,7 +573,7 @@ main()
 		glBlendEquation(GL_FUNC_ADD);
 
 
-		// @ ì‚Á‚½‰æ‘œ‚ğAƒƒCƒ“ƒtƒŒ[ƒ€‚Ì•`‰æƒoƒbƒtƒ@‚ÉAƒeƒNƒXƒ`ƒƒ‚Æ‚µ‚Ä“]ÊiƒNƒŠƒA‚¹‚¸ã‘‚«j
+		// @ ä½œã£ãŸç”»åƒã‚’ã€ãƒ¡ã‚¤ãƒ³ãƒ•ãƒ¬ãƒ¼ãƒ ã®æç”»ãƒãƒƒãƒ•ã‚¡ã«ã€ãƒ†ã‚¯ã‚¹ãƒãƒ£ã¨ã—ã¦è»¢å†™ï¼ˆã‚¯ãƒªã‚¢ã›ãšä¸Šæ›¸ãï¼‰
 		glBindFramebuffer(GL_FRAMEBUFFER, showFrameBuffer);
 		glBindTexture(GL_TEXTURE_2D, shadeTex);
 		glViewport(0, 0, WIDTH, HEIGHT);
@@ -581,8 +581,8 @@ main()
 		glEnable(GL_BLEND);
 		glEnableClientState(GL_VERTEX_ARRAY);
 		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);  // ’Êí‚Ì‡¬
-		glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);  // ƒfƒtƒHƒ‹ƒg
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);  // é€šå¸¸ã®åˆæˆ
+		glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);  // ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆ
 		glVertexPointer(2, GL_FLOAT, 0, groundTexVtx);
 		glTexCoordPointer(2, GL_FLOAT, 0, groundTexUv);
 		glColor4f(atmos.brightness, atmos.brightness, atmos.brightness, atmos.focas);
@@ -593,17 +593,17 @@ main()
 		glDisable(GL_BLEND);
 
 
-		// @ Œãˆ—
+		// @ å¾Œå‡¦ç†
 		EfxFlash.proceed();
-		// printf("Time(s):%f\n", glfwGetTime());  // 1ƒ‹[ƒv‚Ìƒˆ‚Èˆ—ŠÔ
-		DoWait(static_cast<int64_t>(glfwGetTime()*1000.0), WAIT_TIME);  // CPU•‰‰×ŒyŒ¸i30fpsj
+		// printf("Time(s):%f\n", glfwGetTime());  // 1ãƒ«ãƒ¼ãƒ—ã®ç´”ç²‹ãªå‡¦ç†æ™‚é–“
+		DoWait(static_cast<int64_t>(glfwGetTime()*1000.0), WAIT_TIME);  // CPUè² è·è»½æ¸›ï¼ˆ30fpsï¼‰
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 	}
 
 
 
-	// @@@ I—¹ˆ—
+	// @@@ çµ‚äº†å‡¦ç†
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 	glDeleteTextures(1, &texId);
 	glDeleteTextures(1, &showTex);
