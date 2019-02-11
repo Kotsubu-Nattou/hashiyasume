@@ -72,7 +72,7 @@ namespace {
 		// 【クラス】画面の発光エフェクト
 		private:
 			// フィールド
-			GLclampf intensity   = 0.0f;  // C++11以降対応の初期化
+			GLclampf intensity   = 0.0f;  // C++11以降対応の初期化方法
 			const GLclampf decay = 0.9f;
 		
 		public:
@@ -143,7 +143,7 @@ CheckControllerEvent(GLFWwindow *window, TYPE_ATMOS &atmos, CLASS_EFX_FLASH &Efx
 	// 【関数】入力操作の判定
 	// ＜戻り値＞アプリ終了の操作ならtrue、それ以外false
 	static bool flgMouseBtn[GLFW_MOUSE_BUTTON_LAST+1];  // 初期化不要。C++のstatic変数は自動で初期化
-	static bool flgKey[GLFW_KEY_LAST+1];                // 初期化不要。C++のstatic変数は自動で初期化
+	static bool flgKey[GLFW_KEY_LAST+1];
 
 
 	// @ アプリ終了操作
@@ -262,8 +262,8 @@ DoWait(const int64_t elapse_ms, const int64_t wait_ms)
 {
 	// 【関数】処理時間に応じたウェイト
 	// ＜引数＞elapse_msは計測開始からの経過時間。wait_msは最低ウェイトする時間。
-	// 実際にウェイトする時間 = wait_ms - elapse_ms
 	// 単位はすべてミリ秒。Windows依存（計測開始点でglfwSetTime(0.0)を実行しておくこと）
+	// 式。実際にウェイトする時間 = wait_ms - elapse_ms
 	int64_t ms = wait_ms - elapse_ms;
 	if (ms <= 0) return;
 	if (ms > wait_ms) ms = wait_ms;
@@ -381,7 +381,6 @@ main()
 	GLFWmonitor *monitor = NULL;
 	if (IS_FULL_SCREEN) monitor = glfwGetPrimaryMonitor();
 	GLFWwindow *window = glfwCreateWindow(WIDTH, HEIGHT, "myApp", monitor , NULL);
-	// GLFWwindow *window = glfwCreateWindow(WIDTH, HEIGHT, "myApp", NULL, NULL);
 	if (!window) {
 		glfwTerminate();
 		return -1;
@@ -491,7 +490,7 @@ main()
 	// ヘンな合成
 	atmos.blendFactor[2].src = GL_SRC_ALPHA_SATURATE;
 	atmos.blendFactor[2].dst = GL_ONE;
-	// ネガ合成
+	// ネガっぽい合成
 	atmos.blendFactor[3].src = GL_SRC_ALPHA_SATURATE;
 	atmos.blendFactor[3].dst = GL_ONE_MINUS_SRC_ALPHA;
 	// 組み合わせの総数
@@ -573,7 +572,7 @@ main()
 		glBlendEquation(GL_FUNC_ADD);
 
 
-		// @ 作った画像を、メインフレームの描画バッファに、テクスチャとして転写（クリアせず上書き）
+		// @ 作った画像をメインフレームの描画バッファに、テクスチャとして転写（クリアせず上書き）
 		glBindFramebuffer(GL_FRAMEBUFFER, showFrameBuffer);
 		glBindTexture(GL_TEXTURE_2D, shadeTex);
 		glViewport(0, 0, WIDTH, HEIGHT);
