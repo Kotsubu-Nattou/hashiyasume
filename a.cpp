@@ -9,13 +9,13 @@
 using namespace std;
 
 namespace {
-    const bool IS_FULL_SCREEN = false; // フルスクリーンかどうか 
+    const bool IS_FULL_SCREEN = true;  // フルスクリーンかどうか 
     const GLint WIDTH  = 1280;         // 画面サイズ。フルスクリーンの場合は、解像度となる
     const GLint HEIGHT = 720;
     const GLint TEX_SIZE = 256;
     const GLint OBJ_MAX = 400;
     const int64_t WAIT_TIME = 33;      // 1ループの最低更新時間（値はfps=60の時の2フレームのms）
-    const char *CONFIG_FILE = "Config.bin";
+    const char *CONFIG_FILE_NAME = "Config.bin";
     const double PI_MUL2   = M_PI * 2.0;
     const double PI_DIV180 = M_PI / 180.0;
 
@@ -240,7 +240,7 @@ CheckControllerEvent(GLFWwindow *window, TYPE_ATMOS &atmos, CLASS_EFX_FLASH &Efx
     // @ 雰囲気データのセーブ
     if (glfwGetKey(window, GLFW_KEY_ENTER) == GLFW_PRESS) {
         if (!flgKey[GLFW_KEY_ENTER]) {
-            SaveConfig(CONFIG_FILE, atmos);
+            SaveConfig(CONFIG_FILE_NAME, atmos);
             EfxFlash.bang();
             flgKey[GLFW_KEY_ENTER] = true;
         }
@@ -370,7 +370,7 @@ MakeTexture(GLuint *texId)
 int
 main()
 {
-    // @@@ OpenGL及び、GLFWの初期設定
+    // @@@ OpenGLの初期設定
     // GLFWを初期化
     if (!glfwInit()) return -1;
     // ウィンドウの特性
@@ -380,7 +380,7 @@ main()
     // その際、widthとheightが解像度となる。ここではアスペクト比16:9の、1280x720（720p）を指定した。
     GLFWmonitor *monitor = NULL;
     if (IS_FULL_SCREEN) monitor = glfwGetPrimaryMonitor();
-    GLFWwindow *window = glfwCreateWindow(WIDTH, HEIGHT, "myApp", monitor , NULL);
+    GLFWwindow *window = glfwCreateWindow(WIDTH, HEIGHT, "hashiyasume", monitor , NULL);
     if (!window) {
         glfwTerminate();
         return -1;
@@ -403,15 +403,7 @@ main()
 
 
     // @@@ オフスクリーンレンダリングの準備
-    // テクスチャを2枚生成
-    GLuint showTex;
-    glGenTextures(1, &showTex);
-    glBindTexture(GL_TEXTURE_2D, showTex);
-    glTexImage2D(GL_TEXTURE_2D,
-                 0, GL_RGBA, WIDTH, HEIGHT,
-                 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    // テクスチャを生成
     GLuint shadeTex;
     glGenTextures(1, &shadeTex);
     glBindTexture(GL_TEXTURE_2D, shadeTex);
@@ -446,8 +438,8 @@ main()
     // @@@ 図形を準備
     TYPE_OBJ obj;
     // 雛形テクスチャを作成
-    GLuint texId;
-    MakeTexture(&texId);
+    GLuint modelTex;
+    MakeTexture(&modelTex);
     // 頂点をランダムで生成
     srand((unsigned int)time(NULL));
     for (int i = 0; i < OBJ_MAX; ++i) {
@@ -518,8 +510,8 @@ main()
     atmos.fixSpeed        = 1.0f;   // ボールのスピードの調整
     atmos.blendFactorId   = 1;      // アルファブレンド係数の組み合わせ
     atmos.blendEquationId = 0;      // アルファブレンドの計算方法
-    // @ もしコンフィグファイルが存在するなら設定を上書き
-    LoadConfig(CONFIG_FILE, atmos);
+    // @ もしコンフィグファイルが存在するなら、ロードして上書き
+    LoadConfig(CONFIG_FILE_NAME, atmos);
 
 
     // @@@ 画面エフェクトのオブジェクトを生成
@@ -535,7 +527,7 @@ main()
 
         // @ 非表示テクスチャに図形を描画
         glBindFramebuffer(GL_FRAMEBUFFER, shadeFrameBuffer);
-        glBindTexture(GL_TEXTURE_2D, texId);
+        glBindTexture(GL_TEXTURE_2D, modelTex);
         glViewport(0, 0, WIDTH, HEIGHT);
         glClearColor(atmos.baseCol.r + atmos.filterCol.r + EfxFlash.getIntensity(),
                      atmos.baseCol.g + atmos.filterCol.g + EfxFlash.getIntensity(),
@@ -604,8 +596,7 @@ main()
 
     // @@@ 終了処理
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-    glDeleteTextures(1, &texId);
-    glDeleteTextures(1, &showTex);
+    glDeleteTextures(1, &modelTex);
     glDeleteTextures(1, &shadeTex);
     glDeleteFramebuffers(1, &shadeFrameBuffer);
     glfwTerminate();
