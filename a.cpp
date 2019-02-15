@@ -10,8 +10,8 @@ using namespace std;
 
 
 namespace {
-    const bool    IS_FULL_SCREEN = true;  // フルスクリーンかどうか 
-    const GLint   FORM_WIDTH     = 1280;  // 画面サイズ。フルスクリーンの場合は、解像度となる
+    const bool    IS_FULL_SCREEN = false;  // フルスクリーンかどうか 
+    const GLint   FORM_WIDTH     = 1280;  // 画面サイズ。フルスクリーンの場合は解像度。アスペクト比16:9の、1280x720（720p）
     const GLint   FORM_HEIGHT    = 720;
     const GLint   TEX_SIZE       = 256;
     const GLint   OBJ_MAX        = 400;
@@ -340,6 +340,7 @@ makeModelTexture(GLuint *texId)
     glViewport(0, 0, TEX_SIZE, TEX_SIZE);
     glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
     glClear(GL_COLOR_BUFFER_BIT);
+    glEnable(GL_BLEND);
     glEnableClientState(GL_VERTEX_ARRAY);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);  // 通常の合成
 
@@ -360,6 +361,7 @@ makeModelTexture(GLuint *texId)
         glDrawArrays(GL_TRIANGLE_FAN, 0, divide);
     }
     glDisableClientState(GL_VERTEX_ARRAY);
+    glDisable(GL_BLEND);
 
 
     // 作業用のフレームバッファを破棄
@@ -386,11 +388,11 @@ main()
     // @@@ OpenGLの初期設定
     // GLFWを初期化
     if (!glfwInit()) return -1;
-    // ウィンドウの特性
+    // 生成するウィンドウの特性
     glfwWindowHint(GLFW_SAMPLES, 4);
     // ウィンドウを生成し、識別子を取得
-    // glfwCreateWindowの第4引数にglfwGetPrimaryMonitorを渡すと、フルスクリーンになる。
-    // その際、widthとheightが解像度となる。ここではアスペクト比16:9の、1280x720（720p）を指定した。
+    // glfwCreateWindowの第4引数に、glfwGetPrimaryMonitor()を渡すと、フルスクリーンになる。
+    // この際、widthとheightは解像度となる。
     GLFWmonitor *monitor = IS_FULL_SCREEN ? glfwGetPrimaryMonitor() : NULL;
     GLFWwindow *window = glfwCreateWindow(FORM_WIDTH, FORM_HEIGHT, "hashiyasume", monitor , NULL);
     if (!window) {
@@ -408,7 +410,7 @@ main()
     GLint showFrameBuffer;
     glGetIntegerv(GL_FRAMEBUFFER_BINDING, &showFrameBuffer);
     // 垂直同期
-    glfwSwapInterval(1);  // 最近はOS自体がダブルバッファを使うため、この設定は無視される可能性がある
+    glfwSwapInterval(1);  // 最近はOS自体がダブルバッファを使うため、無視される可能性あり
     // マウスカーソルを非表示にする
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
 
@@ -538,6 +540,8 @@ main()
 
 
         // @ 非表示テクスチャに図形を描画
+        glPushAttrib(GL_ALL_ATTRIB_BITS);
+        glPushClientAttrib(GL_CLIENT_ALL_ATTRIB_BITS);
         glBindFramebuffer(GL_FRAMEBUFFER, shadeFrameBuffer);
         glBindTexture(GL_TEXTURE_2D, modelTex);
         glViewport(0, 0, FORM_WIDTH, FORM_HEIGHT);
@@ -568,15 +572,13 @@ main()
             glPointSize(obj.size[i] * atmos.fixSize);
             glDrawArrays(GL_POINTS, i, 1);
         }
-        glDisableClientState(GL_VERTEX_ARRAY);
-        glDisableClientState(GL_COLOR_ARRAY);
-        glDisable(GL_POINT_SPRITE);
-        glDisable(GL_TEXTURE_2D);
-        glDisable(GL_BLEND);
-        glBlendEquation(GL_FUNC_ADD);
+        glPopClientAttrib();
+        glPopAttrib();
 
 
         // @ 作った画像をメインフレームの描画バッファに、テクスチャとして転写（クリアせず上書き）
+        glPushAttrib(GL_ALL_ATTRIB_BITS);
+        glPushClientAttrib(GL_CLIENT_ALL_ATTRIB_BITS);
         glBindFramebuffer(GL_FRAMEBUFFER, showFrameBuffer);
         glBindTexture(GL_TEXTURE_2D, shadeTex);
         glViewport(0, 0, FORM_WIDTH, FORM_HEIGHT);
@@ -585,15 +587,12 @@ main()
         glEnableClientState(GL_VERTEX_ARRAY);
         glEnableClientState(GL_TEXTURE_COORD_ARRAY);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);  // 通常の合成
-        glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);  // デフォルト
         glVertexPointer(2, GL_FLOAT, 0, groundTexVtx);
         glTexCoordPointer(2, GL_FLOAT, 0, groundTexUv);
         glColor4f(atmos.brightness, atmos.brightness, atmos.brightness, atmos.focas);
         glDrawArrays(GL_QUADS, 0, 4);
-        glDisableClientState(GL_VERTEX_ARRAY);
-        glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-        glDisable(GL_TEXTURE_2D);
-        glDisable(GL_BLEND);
+        glPopClientAttrib();
+        glPopAttrib();
 
 
         // @ 後処理
