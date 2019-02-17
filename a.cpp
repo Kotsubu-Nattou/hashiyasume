@@ -5,6 +5,7 @@
 #include <windows.h>
 #include <GLEW/glew.h>
 #include <GLFW/glfw3.h>
+#include "conv_hsv.hpp"
 
 using namespace std;
 
@@ -53,6 +54,8 @@ namespace {
 
     struct TYPE_ATMOS{
         int               useObjNum;
+        int               targetObjHue;
+        int               rangeObjHue;
         GLfloat	          bler;
         GLfloat           focas;
         GLfloat           brightness;
@@ -98,11 +101,11 @@ namespace {
 
 void loadSettings(const char *fileName, TYPE_ATMOS &atmos);
 void saveSettings(const char *fileName, TYPE_ATMOS &atmos);
-bool checkControllerEvent(GLFWwindow *window, TYPE_ATMOS &atmos, CLASS_EFX_FLASH &EfxFlash);
 void doWait(const int64_t elapse_ms, const int64_t wait_ms);
 void moveBoll(TYPE_OBJ &obj, const TYPE_ATMOS &atmos);
+void paintBollColor(TYPE_OBJ &obj, const TYPE_ATMOS &atmos);
 void makeModelTexture(GLuint *texId);
-
+bool checkControllerEvent(GLFWwindow *window, TYPE_OBJ &obj, TYPE_ATMOS &atmos, CLASS_EFX_FLASH &EfxFlash);
 
 
 
@@ -155,8 +158,149 @@ saveSettings(const char *fileName, TYPE_ATMOS &atmos)
 
 
 
+void
+doWait(const int64_t elapse_ms, const int64_t wait_ms)
+{
+    // 【関数】処理時間に応じたウェイト
+    // ＜引数＞elapse_msは計測開始からの経過時間。wait_msは最低ウェイトする時間。
+    // 単位はすべてミリ秒。計測開始点でglfwSetTime(0.0)を実行して使用する。Windows依存。
+    // 式。実際にウェイトする時間 = wait_ms - elapse_ms
+    int64_t ms = wait_ms - elapse_ms;
+
+    if (ms > 0) {
+        if (ms > wait_ms) ms = wait_ms;
+        Sleep(static_cast<DWORD>(ms));
+    }
+
+    return;
+}
+
+
+
+
+
+void
+moveBoll(TYPE_OBJ &obj, const TYPE_ATMOS &atmos)
+{
+    // 【関数】ボールの移動と反射
+
+    for (int i = 0; i < atmos.useObjNum; ++i) {
+        // 移動
+        float rad = static_cast<float>(obj.angle[i] * PI_DIV180);
+        obj.vtx[i].x += cos(rad) * obj.speed[i] * atmos.fixSpeed;
+        obj.vtx[i].y += sin(rad) * obj.speed[i] * atmos.fixSpeed;
+
+        // 反射
+        if (obj.vtx[i].x < -1.0f || obj.vtx[i].x >= 1.0f)
+            obj.angle[i] = (540 - obj.angle[i]) % 360;
+        if (obj.vtx[i].y < -1.0f || obj.vtx[i].y >= 1.0f)
+            obj.angle[i] = (360 - obj.angle[i]) % 360;
+    }
+
+    return;
+}
+
+
+
+
+
+void
+paintBollColor(TYPE_OBJ &obj, const TYPE_ATMOS &atmos)
+{
+    // 【関数】ボールに色を付ける
+    CLASS_HSV_2_RGB Hsv;  // HSVをRGBに変換
+    int hue;
+    bool isFixedSaturation = false;
+
+    // 一定確率で、彩度を固定化
+    if (!(rand() % 4)) {
+        Hsv.setS((rand() % 1000) / 1000.0f);
+        isFixedSaturation = true;
+    }
+
+    // HSVをランダムで作る --> RGBに変換 --> ボールの色に設定
+    for (int i = 0; i < atmos.useObjNum; ++i) {
+        hue = (atmos.targetObjHue + (rand() % atmos.rangeObjHue)) % 360;
+        Hsv.setH(static_cast<float>(hue));
+        if (!isFixedSaturation) Hsv.setS((rand() % 1000) / 1000.0f);
+        Hsv.setV(0.7f + (rand() % 300) / 1000.0f);
+        Hsv.getRGB(obj.col[i].r, obj.col[i].g, obj.col[i].b);
+    }
+
+    return;
+}
+
+
+
+
+
+void
+makeModelTexture(GLuint *texId)
+{
+    // 【関数】雛形のテクスチャを作成
+    // <戻り値> 引数にテクスチャ識別子を返す
+
+    // @ テクスチャを生成
+    glGenTextures(1, texId);
+    glBindTexture(GL_TEXTURE_2D, *texId);
+    glTexImage2D(GL_TEXTURE_2D,
+                 0, GL_RGBA, TEX_SIZE, TEX_SIZE,
+                 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+
+
+    // @ 作業用のフレームバッファを生成
+    GLuint fb;
+    glGenFramebuffers(1, &fb);
+    // テクスチャと紐付ける
+    glBindFramebuffer(GL_FRAMEBUFFER, fb);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+                           GL_TEXTURE_2D, *texId, 0);
+
+
+    // @ テクスチャの内容を描画
+    glBindFramebuffer(GL_FRAMEBUFFER, fb);
+    glViewport(0, 0, TEX_SIZE, TEX_SIZE);
+    glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+    glClear(GL_COLOR_BUFFER_BIT);
+    glEnable(GL_BLEND);
+    glEnableClientState(GL_VERTEX_ARRAY);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);  // 通常の合成
+
+    int divide = 50;      // 円の分割数
+    GLfloat size = 1.0f;  // 円の大きさ
+    GLfloat angle;        // 角度
+    TYPE_POS vtx[divide]; // 頂点配列。要素数は分割数
+
+    for (int i = 0; i < 20; ++i) {
+        size = 1.0f - i / 50.0f;
+        for (int j = 0; j < divide; ++j) {
+            angle = PI_MUL2 * j / divide;
+            vtx[j].x = static_cast<GLfloat>(sin(angle) * size);
+            vtx[j].y = static_cast<GLfloat>(cos(angle) * size);
+        }
+        glVertexPointer(2, GL_FLOAT, 0, vtx);
+        glColor4f(0.0f, 0.0f, 0.0f, 0.02f + i / 48.0f); // 後で色づけするのでrgbは0、アルファが濃さになる。また、i/nのnを小さくすると鮮やかになる
+        glDrawArrays(GL_TRIANGLE_FAN, 0, divide);
+    }
+    glDisableClientState(GL_VERTEX_ARRAY);
+    glDisable(GL_BLEND);
+
+
+    // 作業用のフレームバッファを破棄
+    glDeleteFramebuffers(1, &fb);
+
+    return;
+}
+
+
+
+
+
 bool
-checkControllerEvent(GLFWwindow *window, TYPE_ATMOS &atmos, CLASS_EFX_FLASH &EfxFlash)
+checkControllerEvent(GLFWwindow *window, TYPE_OBJ &obj,
+                     TYPE_ATMOS &atmos, CLASS_EFX_FLASH &EfxFlash)
 {
     // 【関数】入力操作の判定
     // ＜戻り値＞アプリ終了の操作ならtrue、それ以外false
@@ -173,16 +317,19 @@ checkControllerEvent(GLFWwindow *window, TYPE_ATMOS &atmos, CLASS_EFX_FLASH &Efx
     // @ 雰囲気ランダム
     if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS) {
         if (!flgMouseBtn[GLFW_MOUSE_BUTTON_RIGHT]) {
-            atmos.useObjNum     = 3 + rand() % (OBJ_MAX-3);
-            atmos.bler          = (rand() % 1000) / 1000.0f;
-            atmos.focas         = (rand() % 1000) / 1000.0f;
-            atmos.blendFactorId = rand() % atmos.blendFactorMax;
-            atmos.fixSize       = 1.0f;
-            if (!(rand() % 4))
-                atmos.fixSize = 0.1f + (rand() % 1000) / 200.0f;
-            atmos.blendEquationId = 0;
-            if (!(rand() % 5))
-                atmos.blendEquationId = rand() % atmos.blendEquationMax;
+            atmos.useObjNum       = 3 + rand() % (OBJ_MAX-3);
+            atmos.targetObjHue    = rand() % 360;
+            atmos.rangeObjHue     = 180 + rand() % 180;
+            atmos.fixSize         = !(rand() % 4) ?
+                                    0.1f + (rand() % 1000) / 200.0f :
+                                    1.0f;
+            atmos.blendFactorId   = rand() % atmos.blendFactorMax;
+            atmos.blendEquationId = !(rand() % 5) ?
+                                    rand() % atmos.blendEquationMax :
+                                    0;
+            atmos.bler            = (rand() % 1000) / 1000.0f;
+            atmos.focas           = (rand() % 1000) / 1000.0f;
+            paintBollColor(obj, atmos);
             flgMouseBtn[GLFW_MOUSE_BUTTON_RIGHT] = true;
         }
     }
@@ -258,116 +405,6 @@ checkControllerEvent(GLFWwindow *window, TYPE_ATMOS &atmos, CLASS_EFX_FLASH &Efx
 
 
     return false;
-}
-
-
-
-
-
-void
-doWait(const int64_t elapse_ms, const int64_t wait_ms)
-{
-    // 【関数】処理時間に応じたウェイト
-    // ＜引数＞elapse_msは計測開始からの経過時間。wait_msは最低ウェイトする時間。
-    // 単位はすべてミリ秒。計測開始点でglfwSetTime(0.0)を実行して使用する。Windows依存。
-    // 式。実際にウェイトする時間 = wait_ms - elapse_ms
-    int64_t ms = wait_ms - elapse_ms;
-
-    if (ms > 0) {
-        if (ms > wait_ms) ms = wait_ms;
-        Sleep(static_cast<DWORD>(ms));
-    }
-
-    return;
-}
-
-
-
-
-
-void
-moveBoll(TYPE_OBJ &obj, const TYPE_ATMOS &atmos)
-{
-    // 【関数】ボールの移動と反射
-
-    for (int i = 0; i < atmos.useObjNum; ++i) {
-        // 移動
-        float rad = static_cast<float>(obj.angle[i] * PI_DIV180);
-        obj.vtx[i].x += cos(rad) * obj.speed[i] * atmos.fixSpeed;
-        obj.vtx[i].y += sin(rad) * obj.speed[i] * atmos.fixSpeed;
-
-        // 反射
-        if (obj.vtx[i].x < -1.0f || obj.vtx[i].x >= 1.0f)
-            obj.angle[i] = (540 - obj.angle[i]) % 360;
-        if (obj.vtx[i].y < -1.0f || obj.vtx[i].y >= 1.0f)
-            obj.angle[i] = (360 - obj.angle[i]) % 360;
-    }
-
-    return;
-}
-
-
-
-
-
-void
-makeModelTexture(GLuint *texId)
-{
-    // 【関数】雛形のテクスチャを作成
-    // <戻り値> 引数にテクスチャ識別子を返す
-
-    // @ テクスチャを生成
-    glGenTextures(1, texId);
-    glBindTexture(GL_TEXTURE_2D, *texId);
-    glTexImage2D(GL_TEXTURE_2D,
-                 0, GL_RGBA, TEX_SIZE, TEX_SIZE,
-                 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-
-
-    // @ 作業用のフレームバッファを生成
-    GLuint fb;
-    glGenFramebuffers(1, &fb);
-    // テクスチャと紐付ける
-    glBindFramebuffer(GL_FRAMEBUFFER, fb);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
-                           GL_TEXTURE_2D, *texId, 0);
-
-
-    // @ テクスチャの内容を描画
-    glBindFramebuffer(GL_FRAMEBUFFER, fb);
-    glViewport(0, 0, TEX_SIZE, TEX_SIZE);
-    glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-    glClear(GL_COLOR_BUFFER_BIT);
-    glEnable(GL_BLEND);
-    glEnableClientState(GL_VERTEX_ARRAY);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);  // 通常の合成
-
-    int divide = 50;      // 円の分割数
-    GLfloat size = 1.0f;  // 円の大きさ
-    GLfloat angle;        // 角度
-    TYPE_POS vtx[divide]; // 頂点配列。要素数は分割数
-
-    for (int i = 0; i < 20; ++i) {
-        size = 1.0f - i / 50.0f;
-        for (int j = 0; j < divide; ++j) {
-            angle = PI_MUL2 * j / divide;
-            vtx[j].x = static_cast<GLfloat>(sin(angle) * size);
-            vtx[j].y = static_cast<GLfloat>(cos(angle) * size);
-        }
-        glVertexPointer(2, GL_FLOAT, 0, vtx);
-        glColor4f(0.0f, 0.0f, 0.0f, 0.02f + i / 48.0f); // 後で色づけするのでrgbは0、アルファが濃さになる。また、i/nのnを小さくすると鮮やかになる
-        glDrawArrays(GL_TRIANGLE_FAN, 0, divide);
-    }
-    glDisableClientState(GL_VERTEX_ARRAY);
-    glDisable(GL_BLEND);
-
-
-    // 作業用のフレームバッファを破棄
-    glDeleteFramebuffers(1, &fb);
-
-    return;
 }
 
 
@@ -454,22 +491,17 @@ main()
     // 雛形テクスチャを作成
     GLuint modelTex;
     makeModelTexture(&modelTex);
-    // 頂点をランダムで生成
+    // 頂点をランダムで設定
     srand((unsigned int)time(NULL));
     for (int i = 0; i < OBJ_MAX; ++i) {
         obj.vtx[i].x = (rand() % 10000) / 5000.0f - 1.0f;
         obj.vtx[i].y = (rand() % 10000) / 5000.0f - 1.0f;
     }
-    // カラーをランダムで生成
+    // デフォルトカラーを設定
     for (int i = 0; i < OBJ_MAX; ++i) {
-        do {
-            obj.col[i].r = (rand() % 1000) / 1000.0f;
-            obj.col[i].g = (rand() % 1000) / 1000.0f;
-            obj.col[i].b = (rand() % 1000) / 1000.0f;
-        } while(obj.col[i].r + obj.col[i].g + obj.col[i].b < 0.05f);
-        obj.col[i].a = 1.0f;
+        obj.col[i] = {0.0f, 0.0f, 0.0f, 1.0f};
     }
-    // その他のデータをランダムで生成
+    // その他のデータをランダムで設定
     for (int i = 0; i < OBJ_MAX; ++i) {
         // サイズ
         obj.size[i]  = 10.0f + (rand() % 150);
@@ -509,8 +541,14 @@ main()
     // 計算方法の総数
     atmos.blendEquationMax = 2;
     // @ 各初期値
-    atmos.useObjNum       = 200;    // 表示するボールの数
-    atmos.bler            = 0.0f;   // 値が低いほどブラーがかかる
+    atmos.useObjNum       = 200;    // 表示するボールの数（OBJ_MAXまで）
+    atmos.targetObjHue    = 0;      // ボールの色相の基点（0 ～ 360）
+    atmos.rangeObjHue     = 360;    // ボールの色相の基点からの使用範囲（0 ～ 360）
+    atmos.fixSize         = 1.0f;   // ボールのサイズの調整（0.0fより大きい任意の数）
+    atmos.fixSpeed        = 1.0f;   // ボールのスピードの調整（0.0fより大きい任意の数）
+    atmos.blendFactorId   = 1;      // アルファブレンド係数の組み合わせ（blendFactorMaxまで）
+    atmos.blendEquationId = 0;      // アルファブレンドの計算方法（blendEquationMaxまで）
+    atmos.bler            = 0.0f;   // 値が低いほどブラーがかかる（以下すべて0.0f ～ 1.0f）
     atmos.focas           = 0.12f;  // 値が高いほど鮮明になる
     atmos.brightness      = 1.0f;   // 画面の明るさ
     atmos.baseCol.r       = 0.0f;   // 下地の色（大きいと飽和する）
@@ -520,23 +558,23 @@ main()
     atmos.filterCol.g     = 0.0f;
     atmos.filterCol.b     = 0.0f;
     atmos.filterColVol    = 0.2f;   // カラーフィルターの濃さ
-    atmos.fixSize         = 1.0f;   // ボールのサイズの調整
-    atmos.fixSpeed        = 1.0f;   // ボールのスピードの調整
-    atmos.blendFactorId   = 1;      // アルファブレンド係数の組み合わせ
-    atmos.blendEquationId = 0;      // アルファブレンドの計算方法
     // @ もし設定ファイルが存在するなら、ロードして上書き
     loadSettings(FILE_NAME_SETTINGS, atmos);
 
 
-    // @@@ 画面エフェクトのオブジェクトを生成
-    CLASS_EFX_FLASH EfxFlash;
+
+    // @@@ その他の設定
+    CLASS_EFX_FLASH EfxFlash;    // フラッシュエフェクトのクラス
+    paintBollColor(obj, atmos);  // ボールに色を付ける
+
+    
 
 
 
     // @@@ GLFWループ -----------------------------------------------------------------------------
     while (!glfwWindowShouldClose(window)) {
         glfwSetTime(0.0);
-        if (checkControllerEvent(window, atmos, EfxFlash)) break;
+        if (checkControllerEvent(window, obj, atmos, EfxFlash)) break;
 
 
         // @ 非表示テクスチャに図形を描画

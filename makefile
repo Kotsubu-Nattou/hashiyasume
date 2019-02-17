@@ -12,7 +12,7 @@
 # マクロ   ### 記入項目 ###
 PROG   = a.exe
 RESRC  = resource.o
-OBJS   = a.o $(RESRC)
+OBJS   = a.o conv_hsv.o $(RESRC)
 LIBS   = -lopengl32 -lglu32 -lglew32 -lglfw3dll
 COMP   = g++
 CFLAGS = -g -Wall
@@ -49,3 +49,5 @@ clean:
 
 # ヘッダファイルの依存関係   ### 記入項目 ###
 #main.o: sub.h
+a.o: conv_hsv.hpp
+conv_hsv.o: conv_hsv.hpp
