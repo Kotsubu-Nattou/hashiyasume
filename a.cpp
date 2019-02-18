@@ -53,17 +53,17 @@ namespace {
     };
 
     struct TYPE_ATMOS{
-        int               useObjNum;
-        int               targetObjHue;
-        int               rangeObjHue;
+        int               objQuantity;
+        int               objHueTarget;
+        int               objHueRange;
         GLfloat	          bler;
         GLfloat           focas;
         GLfloat           brightness;
         TYPE_RGB          baseCol;
         TYPE_RGB          filterCol;
         GLclampf          filterColVol;
-        GLfloat           fixSize;
-        GLfloat           fixSpeed;
+        GLfloat           adjustSize;
+        GLfloat           adjustSpeed;
         int               blendFactorId;
         int               blendFactorMax;
         TYPE_BLEND_FACTOR blendFactor[10];
@@ -101,9 +101,9 @@ namespace {
 
 void loadSettings(const char *fileName, TYPE_ATMOS &atmos);
 void saveSettings(const char *fileName, TYPE_ATMOS &atmos);
-void doWait(const int64_t elapse_ms, const int64_t wait_ms);
-void moveBoll(TYPE_OBJ &obj, const TYPE_ATMOS &atmos);
-void paintBollColor(TYPE_OBJ &obj, const TYPE_ATMOS &atmos);
+void doWait(int64_t elapse_ms, int64_t wait_ms);
+void moveObjects(TYPE_OBJ &obj, const TYPE_ATMOS &atmos);
+void paintObjectsColor(TYPE_OBJ &obj, const TYPE_ATMOS &atmos);
 void makeModelTexture(GLuint *texId);
 bool checkControllerEvent(GLFWwindow *window, TYPE_OBJ &obj, TYPE_ATMOS &atmos, CLASS_EFX_FLASH &EfxFlash);
 
@@ -111,9 +111,11 @@ bool checkControllerEvent(GLFWwindow *window, TYPE_OBJ &obj, TYPE_ATMOS &atmos, 
 
 
 
-// *********************************************************************************************
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // 【関数】
-// *********************************************************************************************
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
 
@@ -159,7 +161,7 @@ saveSettings(const char *fileName, TYPE_ATMOS &atmos)
 
 
 void
-doWait(const int64_t elapse_ms, const int64_t wait_ms)
+doWait(int64_t elapse_ms, int64_t wait_ms)
 {
     // 【関数】処理時間に応じたウェイト
     // ＜引数＞elapse_msは計測開始からの経過時間。wait_msは最低ウェイトする時間。
@@ -180,15 +182,15 @@ doWait(const int64_t elapse_ms, const int64_t wait_ms)
 
 
 void
-moveBoll(TYPE_OBJ &obj, const TYPE_ATMOS &atmos)
+moveObjects(TYPE_OBJ &obj, const TYPE_ATMOS &atmos)
 {
     // 【関数】ボールの移動と反射
 
-    for (int i = 0; i < atmos.useObjNum; ++i) {
+    for (int i = 0; i < atmos.objQuantity; ++i) {
         // 移動
         float rad = static_cast<float>(obj.angle[i] * PI_DIV180);
-        obj.vtx[i].x += cos(rad) * obj.speed[i] * atmos.fixSpeed;
-        obj.vtx[i].y += sin(rad) * obj.speed[i] * atmos.fixSpeed;
+        obj.vtx[i].x += cos(rad) * obj.speed[i] * atmos.adjustSpeed;
+        obj.vtx[i].y += sin(rad) * obj.speed[i] * atmos.adjustSpeed;
 
         // 反射
         if (obj.vtx[i].x < -1.0f || obj.vtx[i].x >= 1.0f)
@@ -205,24 +207,23 @@ moveBoll(TYPE_OBJ &obj, const TYPE_ATMOS &atmos)
 
 
 void
-paintBollColor(TYPE_OBJ &obj, const TYPE_ATMOS &atmos)
+paintObjectsColor(TYPE_OBJ &obj, const TYPE_ATMOS &atmos)
 {
     // 【関数】ボールに色を付ける
     CLASS_HSV_2_RGB Hsv;  // HSVをRGBに変換
-    int hue;
-    bool isFixedSaturation = false;
+    bool isFixSaturation = false;
 
     // 一定確率で、彩度を固定化
     if (!(rand() % 4)) {
         Hsv.setS((rand() % 1000) / 1000.0f);
-        isFixedSaturation = true;
+        isFixSaturation = true;
     }
 
     // HSVをランダムで作る --> RGBに変換 --> ボールの色に設定
-    for (int i = 0; i < atmos.useObjNum; ++i) {
-        hue = (atmos.targetObjHue + (rand() % atmos.rangeObjHue)) % 360;
-        Hsv.setH(static_cast<float>(hue));
-        if (!isFixedSaturation) Hsv.setS((rand() % 1000) / 1000.0f);
+    for (int i = 0; i < atmos.objQuantity; ++i) {
+        Hsv.setH((atmos.objHueTarget + (rand() % atmos.objHueRange)) % 360);
+        if (!isFixSaturation)
+            Hsv.setS((rand() % 1000) / 1000.0f);
         Hsv.setV(0.7f + (rand() % 300) / 1000.0f);
         Hsv.getRGB(obj.col[i].r, obj.col[i].g, obj.col[i].b);
     }
@@ -317,10 +318,10 @@ checkControllerEvent(GLFWwindow *window, TYPE_OBJ &obj,
     // @ 雰囲気ランダム
     if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS) {
         if (!flgMouseBtn[GLFW_MOUSE_BUTTON_RIGHT]) {
-            atmos.useObjNum       = 3 + rand() % (OBJ_MAX-3);
-            atmos.targetObjHue    = rand() % 360;
-            atmos.rangeObjHue     = 180 + rand() % 180;
-            atmos.fixSize         = !(rand() % 4) ?
+            atmos.objQuantity     = 3 + rand() % (OBJ_MAX-3);
+            atmos.objHueTarget    = rand() % 360;
+            atmos.objHueRange     = 180 + rand() % 180;
+            atmos.adjustSize      = !(rand() % 4) ?
                                     0.1f + (rand() % 1000) / 200.0f :
                                     1.0f;
             atmos.blendFactorId   = rand() % atmos.blendFactorMax;
@@ -328,8 +329,8 @@ checkControllerEvent(GLFWwindow *window, TYPE_OBJ &obj,
                                     rand() % atmos.blendEquationMax :
                                     0;
             atmos.bler            = (rand() % 1000) / 1000.0f;
-            atmos.focas           = (rand() % 1000) / 1000.0f;
-            paintBollColor(obj, atmos);
+            atmos.focas           = 0.005f + (rand() % 995) / 1000.0f;
+            paintObjectsColor(obj, atmos);
             flgMouseBtn[GLFW_MOUSE_BUTTON_RIGHT] = true;
         }
     }
@@ -411,9 +412,11 @@ checkControllerEvent(GLFWwindow *window, TYPE_OBJ &obj,
 
 
 
-// *********************************************************************************************
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // 【メイン】
-// *********************************************************************************************
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
 
@@ -541,15 +544,15 @@ main()
     // 計算方法の総数
     atmos.blendEquationMax = 2;
     // @ 各初期値
-    atmos.useObjNum       = 200;    // 表示するボールの数（OBJ_MAXまで）
-    atmos.targetObjHue    = 0;      // ボールの色相の基点（0 ～ 360）
-    atmos.rangeObjHue     = 360;    // ボールの色相の基点からの使用範囲（0 ～ 360）
-    atmos.fixSize         = 1.0f;   // ボールのサイズの調整（0.0fより大きい任意の数）
-    atmos.fixSpeed        = 1.0f;   // ボールのスピードの調整（0.0fより大きい任意の数）
+    atmos.objQuantity     = 200;    // 表示するボールの数（OBJ_MAXまで）
+    atmos.objHueTarget    = 0;      // ボールの色相の基点（0 ～ 360）
+    atmos.objHueRange     = 360;    // ボールの色相の基点からの使用範囲（0 ～ 360）
+    atmos.adjustSize      = 1.0f;   // ボールのサイズの調整（0.0fより大きい任意の数）
+    atmos.adjustSpeed     = 1.0f;   // ボールのスピードの調整（0.0fより大きい任意の数）
     atmos.blendFactorId   = 1;      // アルファブレンド係数の組み合わせ（blendFactorMaxまで）
     atmos.blendEquationId = 0;      // アルファブレンドの計算方法（blendEquationMaxまで）
-    atmos.bler            = 0.0f;   // 値が低いほどブラーがかかる（以下すべて0.0f ～ 1.0f）
-    atmos.focas           = 0.12f;  // 値が高いほど鮮明になる
+    atmos.bler            = 0.12f;  // 値が低いほどブラーがかかる（以下すべて0.0f ～ 1.0f）
+    atmos.focas           = 0.1f;   // 値が高いほど鮮明になる
     atmos.brightness      = 1.0f;   // 画面の明るさ
     atmos.baseCol.r       = 0.0f;   // 下地の色（大きいと飽和する）
     atmos.baseCol.g       = 0.0f;
@@ -564,14 +567,14 @@ main()
 
 
     // @@@ その他の設定
-    CLASS_EFX_FLASH EfxFlash;    // フラッシュエフェクトのクラス
-    paintBollColor(obj, atmos);  // ボールに色を付ける
+    CLASS_EFX_FLASH EfxFlash;       // フラッシュエフェクトのクラス
+    paintObjectsColor(obj, atmos);  // ボールに色を付ける
 
     
 
 
 
-    // @@@ GLFWループ -----------------------------------------------------------------------------
+    // @@@ GLFWループ ----------------------------------------------------------------------------------------------------
     while (!glfwWindowShouldClose(window)) {
         glfwSetTime(0.0);
         if (checkControllerEvent(window, obj, atmos, EfxFlash)) break;
@@ -602,12 +605,12 @@ main()
         // テクスチャの色の付き方。雛形テクスチャの色(0,0,0,濃度)に、付けたい色(r,g,b,1)を合成させる
         glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_BLEND);
         // 移動と反射
-        moveBoll(obj, atmos);
+        moveObjects(obj, atmos);
         // ポイントスプライトを描画
         glVertexPointer(2, GL_FLOAT, 0, obj.vtx);
         glColorPointer(4, GL_FLOAT, 0, obj.col);
-        for (int i = 0; i < atmos.useObjNum; ++i) {
-            glPointSize(obj.size[i] * atmos.fixSize);
+        for (int i = 0; i < atmos.objQuantity; ++i) {
+            glPointSize(obj.size[i] * atmos.adjustSize);
             glDrawArrays(GL_POINTS, i, 1);
         }
         glPopClientAttrib();

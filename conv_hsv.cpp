@@ -5,11 +5,11 @@
 //   CLASS_HSV_2_RGB  ---  HSVをセットし、RGBをゲット
 //   CLASS_RGB_2_HSV  ---  RGBをセットし、HSVをゲット
 //
-// ・各数値の範囲（すべてfloat）
-//   RGB              : 0.0 ～ 1.0
-//   Hue（色相）       : 0.0 ～ 360.0
-//   Saturation（彩度）: 0.0 ～ 1.0
-//   Value（明度）     : 0.0 ～ 1.0
+// ・各数値の有効範囲
+//   RGB              : 0 ～ 1    (float)
+//   Hue（色相）       : 0 ～ 360  (float, int型セッタ)
+//   Saturation（彩度）: 0 ～ 1    (float)
+//   Value（明度）     : 0 ～ 1    (float)
 ///////////////////////////////////////////////////////////////////////////////////////////////
 
 
@@ -29,23 +29,57 @@
 
 
 void
-CLASS_HSV_2_RGB::setH(const float hue) {
+CLASS_HSV_2_RGB::setH(float hue) {
     // 【セッタ】色相
+    if (hue <   0.0f) hue =   0.0f;
+    if (hue > 360.0f) hue = 360.0f;
     h = hue;
     return;
 }
 
+
 void
-CLASS_HSV_2_RGB::setS(const float Saturation) {
-    // 【セッタ】彩度
-    s = Saturation;
+CLASS_HSV_2_RGB::setH(int hue) {
+    // 【セッタ】色相（オーバーロード）
+    this->setH(static_cast<float>(hue));
     return;
 }
 
+
 void
-CLASS_HSV_2_RGB::setV(const float Value) {
+CLASS_HSV_2_RGB::setS(float saturation) {
+    // 【セッタ】彩度
+    if (saturation < 0.0f) saturation = 0.0f;
+    if (saturation > 1.0f) saturation = 1.0f;
+    s = saturation;
+    return;
+}
+
+
+void
+CLASS_HSV_2_RGB::setV(float value) {
     // 【セッタ】明度
-    v = Value;
+    if (value < 0.0f) value = 0.0f;
+    if (value > 1.0f) value = 1.0f;
+    v = value;
+    return;
+}
+
+
+void
+CLASS_HSV_2_RGB::setHSV(float hue, float saturation, float value) {
+    // 【セッタ】HSVをまとめて指定
+    this->setH(hue);
+    this->setS(saturation);
+    this->setV(value);
+    return;
+}
+
+
+void
+CLASS_HSV_2_RGB::setHSV(int hue, float saturation, float value) {
+    // 【セッタ】HSVをまとめて指定（オーバーロード）
+    this->setHSV(static_cast<float>(hue), saturation, value);
     return;
 }
 
@@ -133,23 +167,41 @@ CLASS_HSV_2_RGB::getRGB(float &r, float &g, float &b)
 
 
 void
-CLASS_RGB_2_HSV::setR(const float red) {
-    // 【セッタ】赤
+CLASS_RGB_2_HSV::setR(float red) {
+    // 【セッタ】赤成分
+    if (red < 0.0f) red = 0.0f;
+    if (red > 1.0f) red = 1.0f;
     r = red;
     return;
 }
 
+
 void
-CLASS_RGB_2_HSV::setG(const float green) {
-    // 【セッタ】緑
+CLASS_RGB_2_HSV::setG(float green) {
+    // 【セッタ】緑成分
+    if (green < 0.0f) green = 0.0f;
+    if (green > 1.0f) green = 1.0f;
     g = green;
     return;
 }
 
+
 void
-CLASS_RGB_2_HSV::setB(const float blue) {
-    // 【セッタ】青
+CLASS_RGB_2_HSV::setB(float blue) {
+    // 【セッタ】青成分
+    if (blue < 0.0f) blue = 0.0f;
+    if (blue > 1.0f) blue = 1.0f;
     b = blue;
+    return;
+}
+
+
+void
+CLASS_RGB_2_HSV::setRGB(float red, float green, float blue) {
+    // 【セッタ】RGBをまとめて指定
+    this->setR(red);
+    this->setG(green);
+    this->setB(blue);
     return;
 }
 
