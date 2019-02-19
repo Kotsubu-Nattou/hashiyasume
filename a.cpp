@@ -1,21 +1,20 @@
 #include <fstream>
 #include <ctime>
-#define _USE_MATH_DEFINES  // VC++でもM_PIを使うには、cmathのインクルード前にこれを定義しておく
+#define _USE_MATH_DEFINES  // VC++でもM_PIを使えるようにする（cmathより前で定義）
 #include <cmath>
 #include <windows.h>
 #include <GLEW/glew.h>
 #include <GLFW/glfw3.h>
 #include "conv_hsv.hpp"
 
-using namespace std;
 
 
 namespace {
-    const bool    IS_FULL_SCREEN = false;  // フルスクリーンかどうか 
+    const bool    IS_FULL_SCREEN = true;  // フルスクリーンかどうか 
     const GLint   FORM_WIDTH     = 1280;  // 画面サイズ。フルスクリーンの場合は解像度。アスペクト比16:9の、1280x720（720p）
     const GLint   FORM_HEIGHT    = 720;
     const GLint   TEX_SIZE       = 256;
-    const GLint   OBJ_MAX        = 400;
+    const int     OBJ_MAX        = 400;
     const int64_t WAIT_TIME      = 33;    // 1ループの最低更新時間（値はfps=60の時の2フレームのms）
     const double  PI_MUL2        = M_PI * 2.0;
     const double  PI_DIV180      = M_PI / 180.0;
@@ -56,14 +55,14 @@ namespace {
         int               objQuantity;
         int               objHueTarget;
         int               objHueRange;
+        GLfloat           objSizeAdjust;
+        GLfloat           objSpeedAdjust;
         GLfloat	          bler;
         GLfloat           focas;
         GLfloat           brightness;
         TYPE_RGB          baseCol;
         TYPE_RGB          filterCol;
         GLclampf          filterColVol;
-        GLfloat           adjustSize;
-        GLfloat           adjustSpeed;
         int               blendFactorId;
         int               blendFactorMax;
         TYPE_BLEND_FACTOR blendFactor[10];
@@ -99,11 +98,12 @@ namespace {
 }
 
 
+
 void loadSettings(const char *fileName, TYPE_ATMOS &atmos);
 void saveSettings(const char *fileName, TYPE_ATMOS &atmos);
 void doWait(int64_t elapse_ms, int64_t wait_ms);
 void moveObjects(TYPE_OBJ &obj, const TYPE_ATMOS &atmos);
-void paintObjectsColor(TYPE_OBJ &obj, const TYPE_ATMOS &atmos);
+void paintObjects(TYPE_OBJ &obj, const TYPE_ATMOS &atmos);
 void makeModelTexture(GLuint *texId);
 bool checkControllerEvent(GLFWwindow *window, TYPE_OBJ &obj, TYPE_ATMOS &atmos, CLASS_EFX_FLASH &EfxFlash);
 
@@ -125,7 +125,7 @@ void
 loadSettings(const char *fileName, TYPE_ATMOS &atmos)
 {
     // 【関数】コンフィグファイルをロード。ファイルが見つからない場合、何もしない
-    ifstream fs(fileName, ios::binary);
+    std::ifstream fs(fileName, std::ios::binary);
 
     if (fs) {
         fs.seekg(0, fs.end);
@@ -149,7 +149,7 @@ void
 saveSettings(const char *fileName, TYPE_ATMOS &atmos)
 {
     // 【関数】コンフィグファイルをセーブ。ファイルが見つからない場合、新しいファイルが作られる
-    ofstream fs(fileName, ios::binary);
+    std::ofstream fs(fileName, std::ios::binary);
     fs.write(reinterpret_cast<char*>(&atmos), sizeof(TYPE_ATMOS));
     fs.close();
 
@@ -189,8 +189,8 @@ moveObjects(TYPE_OBJ &obj, const TYPE_ATMOS &atmos)
     for (int i = 0; i < atmos.objQuantity; ++i) {
         // 移動
         float rad = static_cast<float>(obj.angle[i] * PI_DIV180);
-        obj.vtx[i].x += cos(rad) * obj.speed[i] * atmos.adjustSpeed;
-        obj.vtx[i].y += sin(rad) * obj.speed[i] * atmos.adjustSpeed;
+        obj.vtx[i].x += cos(rad) * obj.speed[i] * atmos.objSpeedAdjust;
+        obj.vtx[i].y += sin(rad) * obj.speed[i] * atmos.objSpeedAdjust;
 
         // 反射
         if (obj.vtx[i].x < -1.0f || obj.vtx[i].x >= 1.0f)
@@ -207,10 +207,10 @@ moveObjects(TYPE_OBJ &obj, const TYPE_ATMOS &atmos)
 
 
 void
-paintObjectsColor(TYPE_OBJ &obj, const TYPE_ATMOS &atmos)
+paintObjects(TYPE_OBJ &obj, const TYPE_ATMOS &atmos)
 {
     // 【関数】ボールに色を付ける
-    CLASS_HSV_2_RGB Hsv;  // HSVをRGBに変換
+    CLASS_HSV_2_RGB Hsv;  // HSVをRGBに変換するクラス
     bool isFixSaturation = false;
 
     // 一定確率で、彩度を固定化
@@ -320,17 +320,17 @@ checkControllerEvent(GLFWwindow *window, TYPE_OBJ &obj,
         if (!flgMouseBtn[GLFW_MOUSE_BUTTON_RIGHT]) {
             atmos.objQuantity     = 3 + rand() % (OBJ_MAX-3);
             atmos.objHueTarget    = rand() % 360;
-            atmos.objHueRange     = 180 + rand() % 180;
-            atmos.adjustSize      = !(rand() % 4) ?
-                                    0.1f + (rand() % 1000) / 200.0f :
-                                    1.0f;
+            atmos.objHueRange     = rand() % 360;
+            atmos.objSizeAdjust   = !(rand() % 4)
+                                    ? 0.1f + (rand() % 1000) / 200.0f
+                                    : 1.0f;
             atmos.blendFactorId   = rand() % atmos.blendFactorMax;
-            atmos.blendEquationId = !(rand() % 5) ?
-                                    rand() % atmos.blendEquationMax :
-                                    0;
+            atmos.blendEquationId = !(rand() % 5)
+                                    ? rand() % atmos.blendEquationMax
+                                    : 0;
             atmos.bler            = (rand() % 1000) / 1000.0f;
             atmos.focas           = 0.005f + (rand() % 995) / 1000.0f;
-            paintObjectsColor(obj, atmos);
+            paintObjects(obj, atmos);
             flgMouseBtn[GLFW_MOUSE_BUTTON_RIGHT] = true;
         }
     }
@@ -547,8 +547,8 @@ main()
     atmos.objQuantity     = 200;    // 表示するボールの数（OBJ_MAXまで）
     atmos.objHueTarget    = 0;      // ボールの色相の基点（0 ～ 360）
     atmos.objHueRange     = 360;    // ボールの色相の基点からの使用範囲（0 ～ 360）
-    atmos.adjustSize      = 1.0f;   // ボールのサイズの調整（0.0fより大きい任意の数）
-    atmos.adjustSpeed     = 1.0f;   // ボールのスピードの調整（0.0fより大きい任意の数）
+    atmos.objSizeAdjust   = 1.0f;   // ボールのサイズの調整（0.0fより大きい任意の数）
+    atmos.objSpeedAdjust  = 1.0f;   // ボールのスピードの調整（0.0fより大きい任意の数）
     atmos.blendFactorId   = 1;      // アルファブレンド係数の組み合わせ（blendFactorMaxまで）
     atmos.blendEquationId = 0;      // アルファブレンドの計算方法（blendEquationMaxまで）
     atmos.bler            = 0.12f;  // 値が低いほどブラーがかかる（以下すべて0.0f ～ 1.0f）
@@ -567,10 +567,8 @@ main()
 
 
     // @@@ その他の設定
-    CLASS_EFX_FLASH EfxFlash;       // フラッシュエフェクトのクラス
-    paintObjectsColor(obj, atmos);  // ボールに色を付ける
-
-    
+    CLASS_EFX_FLASH EfxFlash;  // フラッシュエフェクトのクラス
+    paintObjects(obj, atmos);  // ボールに色を付ける
 
 
 
@@ -610,7 +608,7 @@ main()
         glVertexPointer(2, GL_FLOAT, 0, obj.vtx);
         glColorPointer(4, GL_FLOAT, 0, obj.col);
         for (int i = 0; i < atmos.objQuantity; ++i) {
-            glPointSize(obj.size[i] * atmos.adjustSize);
+            glPointSize(obj.size[i] * atmos.objSizeAdjust);
             glDrawArrays(GL_POINTS, i, 1);
         }
         glPopClientAttrib();

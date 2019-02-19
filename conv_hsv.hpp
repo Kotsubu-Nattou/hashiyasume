@@ -7,7 +7,7 @@
 //
 // ・各数値の有効範囲
 //   RGB              : 0 ～ 1    (float)
-//   Hue（色相）       : 0 ～ 360  (float, int型セッタ)
+//   Hue（色相）       : 0 ～ 360  (float, int)
 //   Saturation（彩度）: 0 ～ 1    (float)
 //   Value（明度）     : 0 ～ 1    (float)
 ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -21,11 +21,11 @@ class CLASS_HSV_2_RGB
 
     public:
         void setH(float hue);
-        void setH(int hue);  // int版オーバーロード
+        void setH(  int hue);  // int版オーバーロード
         void setS(float saturation);
         void setV(float value);
         void setHSV(float hue, float saturation, float value);
-        void setHSV(int hue, float saturation, float value);  // hueのint版オーバーロード
+        void setHSV(  int hue, float saturation, float value);  // hueのint版オーバーロード
         void getRGB(float &r, float &g, float &b);
 };
 
@@ -44,4 +44,5 @@ class CLASS_RGB_2_HSV
         void setB(float blue);
         void setRGB(float red, float green, float blue);
         void getHSV(float &h, float &s, float &v);
+        void getHSV(  int &h, float &s, float &v);  // hueのint版オーバーロード
 };

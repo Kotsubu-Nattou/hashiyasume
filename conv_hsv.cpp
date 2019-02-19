@@ -7,7 +7,7 @@
 //
 // ・各数値の有効範囲
 //   RGB              : 0 ～ 1    (float)
-//   Hue（色相）       : 0 ～ 360  (float, int型セッタ)
+//   Hue（色相）       : 0 ～ 360  (float, int)
 //   Saturation（彩度）: 0 ～ 1    (float)
 //   Value（明度）     : 0 ～ 1    (float)
 ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -270,5 +270,19 @@ CLASS_RGB_2_HSV::getHSV(float &h, float &s, float &v)
         h = (r - g) / (max-min) * 60.0f + 240.0f;
 
 
+    return;
+}
+
+
+
+
+
+void
+CLASS_RGB_2_HSV::getHSV(int &h, float &s, float &v)
+{
+    // 【ゲッタ】RGBをHSVに変換して返す（オーバーロード）
+    float hue;
+    this->getHSV(hue, s, v);
+    h = static_cast<int>(hue);
     return;
 }
