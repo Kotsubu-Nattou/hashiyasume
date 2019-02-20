@@ -14,6 +14,7 @@
 
 
 
+#include <cmath>
 #include "conv_hsv.hpp"
 
 
@@ -31,8 +32,13 @@
 void
 CLASS_HSV_2_RGB::setH(float hue) {
     // 【セッタ】色相
-    if (hue <   0.0f) hue =   0.0f;
-    if (hue > 360.0f) hue = 360.0f;
+    if (hue < 0.0f) {
+        hue = fmodf(hue, 360.0f) + 360.0f;
+        if (hue == 360.0f) hue = 0.0f;
+    }
+    else if (hue >= 360.0f) 
+        hue = fmodf(hue, 360.0f);
+        
     h = hue;
     return;
 }
@@ -49,8 +55,8 @@ CLASS_HSV_2_RGB::setH(int hue) {
 void
 CLASS_HSV_2_RGB::setS(float saturation) {
     // 【セッタ】彩度
-    if (saturation < 0.0f) saturation = 0.0f;
-    if (saturation > 1.0f) saturation = 1.0f;
+    if      (saturation < 0.0f) saturation = 0.0f;
+    else if (saturation > 1.0f) saturation = 1.0f;
     s = saturation;
     return;
 }
@@ -59,8 +65,8 @@ CLASS_HSV_2_RGB::setS(float saturation) {
 void
 CLASS_HSV_2_RGB::setV(float value) {
     // 【セッタ】明度
-    if (value < 0.0f) value = 0.0f;
-    if (value > 1.0f) value = 1.0f;
+    if      (value < 0.0f) value = 0.0f;
+    else if (value > 1.0f) value = 1.0f;
     v = value;
     return;
 }
@@ -169,8 +175,8 @@ CLASS_HSV_2_RGB::getRGB(float &r, float &g, float &b)
 void
 CLASS_RGB_2_HSV::setR(float red) {
     // 【セッタ】赤成分
-    if (red < 0.0f) red = 0.0f;
-    if (red > 1.0f) red = 1.0f;
+    if      (red < 0.0f) red = 0.0f;
+    else if (red > 1.0f) red = 1.0f;
     r = red;
     return;
 }
@@ -179,8 +185,8 @@ CLASS_RGB_2_HSV::setR(float red) {
 void
 CLASS_RGB_2_HSV::setG(float green) {
     // 【セッタ】緑成分
-    if (green < 0.0f) green = 0.0f;
-    if (green > 1.0f) green = 1.0f;
+    if      (green < 0.0f) green = 0.0f;
+    else if (green > 1.0f) green = 1.0f;
     g = green;
     return;
 }
@@ -189,8 +195,8 @@ CLASS_RGB_2_HSV::setG(float green) {
 void
 CLASS_RGB_2_HSV::setB(float blue) {
     // 【セッタ】青成分
-    if (blue < 0.0f) blue = 0.0f;
-    if (blue > 1.0f) blue = 1.0f;
+    if      (blue < 0.0f) blue = 0.0f;
+    else if (blue > 1.0f) blue = 1.0f;
     b = blue;
     return;
 }
