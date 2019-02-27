@@ -14,6 +14,13 @@
 
 
 
+#ifndef _INCLUDE_CONV_HSV_
+#define _INCLUDE_CONV_HSV_
+
+
+
+
+
 class CLASS_HSV_2_RGB
 {
     private:
@@ -46,3 +53,7 @@ class CLASS_RGB_2_HSV
         void getHSV(float &h, float &s, float &v);
         void getHSV(  int &h, float &s, float &v);  // hueのint版オーバーロード
 };
+
+
+
+#endif

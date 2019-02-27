@@ -49,5 +49,5 @@ clean:
 
 # ヘッダファイルの依存関係   ### 記入項目 ###
 #main.o: sub.h
-a.o: conv_hsv.hpp
-conv_hsv.o: conv_hsv.hpp
+a.o: conv_hsv.h
+conv_hsv.o: conv_hsv.h
